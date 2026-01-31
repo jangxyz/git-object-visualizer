@@ -348,6 +348,79 @@
       "priority": 20,
       "passes": true,
       "notes": "✅ 확인 가능: 로딩 스피너, 토스트 에러 알림, 타임아웃 처리 (10초)"
+    },
+    {
+      "id": "US-BUG-003",
+      "title": "커밋 타임라인 무한 로딩 버그",
+      "description": "사용자로서, 저장소를 열면 커밋 타임라인이 정상적으로 로드되어야 한다.",
+      "acceptanceCriteria": [
+        "저장소 열기 후 커밋 타임라인이 '커밋 히스토리 로딩 중...'에서 멈추지 않는다",
+        "커밋 목록이 정상적으로 표시되거나, 에러 시 에러 메시지가 표시된다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": -2,
+      "passes": false,
+      "notes": "증상: 저장소 열기 후 '커밋 히스토리 로딩 중...' 상태에서 무한 대기. 조사 필요: IPC 핸들러 응답, git log 명령어 실행 여부, store 업데이트 확인"
+    },
+    {
+      "id": "US-021",
+      "title": "뷰 모드 토글 (그래프/리스트)",
+      "description": "사용자로서, 객체 그래프 뷰와 리스트 뷰 사이를 전환할 수 있어야 한다.",
+      "acceptanceCriteria": [
+        "중앙 영역 상단에 뷰 모드 토글 버튼(그래프/리스트)이 있다",
+        "기본값은 그래프 뷰이다",
+        "토글 시 동일한 객체 데이터를 다른 형태로 표시한다",
+        "선택된 뷰 모드가 localStorage에 저장되어 앱 재시작 시 유지된다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-022",
+      "title": "객체 리스트 뷰 컴포넌트",
+      "description": "사용자로서, Git 객체들을 테이블 형태의 리스트로 볼 수 있어야 한다.",
+      "acceptanceCriteria": [
+        "리스트 뷰에 테이블이 표시된다 (컬럼: Type, SHA, Name)",
+        "타입별 아이콘/색상으로 시각적 구분 (commit: 파란색, tree: 초록색, blob: 주황색)",
+        "컬럼 헤더 클릭으로 정렬 가능 (type, name, sha)",
+        "행 클릭 시 해당 객체가 선택된다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-023",
+      "title": "리스트 뷰 - 상세 패널 연동",
+      "description": "사용자로서, 리스트에서 객체 선택 시 상세 정보를 볼 수 있어야 한다.",
+      "acceptanceCriteria": [
+        "리스트에서 행 클릭 시 우측 상세 정보 패널이 표시된다",
+        "기존 ObjectDetailPanel을 재사용한다",
+        "선택된 행에 하이라이트 표시",
+        "파일 탐색기에서 항목 선택 시 리스트에서도 해당 행이 하이라이트된다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-024",
+      "title": "리스트 뷰 필터링",
+      "description": "사용자로서, 객체 타입별로 필터링하여 볼 수 있어야 한다.",
+      "acceptanceCriteria": [
+        "리스트 상단에 타입 필터 버튼들이 있다 (All, Commit, Tree, Blob)",
+        "필터 클릭 시 해당 타입만 표시된다",
+        "여러 타입 동시 선택 가능 (예: Tree + Blob)",
+        "필터 상태가 뷰 전환 시에도 유지된다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": 24,
+      "passes": false,
+      "notes": ""
     }
   ]
 }
