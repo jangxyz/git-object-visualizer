@@ -1,6 +1,7 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { isValidRepository } from './gitService'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -31,6 +32,11 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
+
+// IPC handlers for git service
+ipcMain.handle('git:isValidRepository', (_event, path: string) => {
+  return isValidRepository(path)
+})
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.electron')

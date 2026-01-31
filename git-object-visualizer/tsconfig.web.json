@@ -16,5 +16,5 @@
       "@/*": ["./src/renderer/*"]
     }
   },
-  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.svelte"]
+  "include": ["src/renderer/**/*.ts", "src/renderer/**/*.svelte", "src/renderer/**/*.d.ts"]
 }
