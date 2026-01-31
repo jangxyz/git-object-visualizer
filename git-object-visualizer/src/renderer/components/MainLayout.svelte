@@ -156,8 +156,8 @@
   .main-layout {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    background-color: #1e1e1e;
+    height: 100%;
+    background-color: var(--bg-primary);
   }
 
   .main-layout.resizing-horizontal {
@@ -203,14 +203,14 @@
   }
 
   .resizer {
-    background-color: #333;
+    background-color: var(--bg-hover);
     flex-shrink: 0;
     transition: background-color 0.15s;
   }
 
   .resizer:hover,
   .resizer:active {
-    background-color: #4a90d9;
+    background-color: var(--spinner-color);
   }
 
   .resizer-horizontal {

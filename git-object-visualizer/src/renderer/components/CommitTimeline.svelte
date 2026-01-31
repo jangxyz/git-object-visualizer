@@ -160,8 +160,8 @@
 <style>
   .commit-timeline {
     height: 100%;
-    background-color: #1e1e1e;
-    border-top: 1px solid #3c3c3c;
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
     padding: 0.75rem;
     display: flex;
     flex-direction: column;
@@ -170,7 +170,7 @@
   .panel-title {
     font-size: 0.75rem;
     font-weight: 600;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
@@ -192,17 +192,17 @@
   }
 
   .commit-list::-webkit-scrollbar-track {
-    background: #2d2d2d;
+    background: var(--scrollbar-track);
     border-radius: 3px;
   }
 
   .commit-list::-webkit-scrollbar-thumb {
-    background: #555;
+    background: var(--scrollbar-thumb);
     border-radius: 3px;
   }
 
   .commit-list::-webkit-scrollbar-thumb:hover {
-    background: #666;
+    background: var(--scrollbar-thumb-hover);
   }
 
   .commit-item {
@@ -211,8 +211,8 @@
     align-items: flex-start;
     gap: 0.25rem;
     padding: 0.5rem 0.75rem;
-    background-color: #2d2d2d;
-    border: 1px solid #3c3c3c;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     min-width: 180px;
@@ -225,13 +225,13 @@
   }
 
   .commit-item:hover {
-    background-color: #363636;
-    border-color: #4a4a4a;
+    background-color: var(--bg-hover);
+    border-color: var(--text-dimmed);
   }
 
   .commit-item.selected {
-    background-color: #264f78;
-    border-color: #4a9eff;
+    background-color: var(--bg-selected);
+    border-color: var(--accent-color);
   }
 
   .commit-header {
@@ -245,7 +245,7 @@
   .commit-sha {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.75rem;
-    color: #4a9eff;
+    color: var(--accent-color);
     font-weight: 600;
   }
 
@@ -262,21 +262,21 @@
   }
 
   .copy-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--overlay-bg);
   }
 
   .copy-icon {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .copy-icon.check {
-    color: #50c878;
+    color: var(--success-color);
   }
 
   .commit-message {
     font-size: 0.8rem;
-    color: #e0e0e0;
+    color: var(--text-secondary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -285,7 +285,7 @@
 
   .commit-author {
     font-size: 0.7rem;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .loading,
@@ -296,11 +296,11 @@
     justify-content: center;
     flex: 1;
     font-size: 0.875rem;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .error {
-    color: #ff6b6b;
+    color: var(--error-color);
   }
 
   /* Copy button wrapper for tooltip positioning */
@@ -316,8 +316,8 @@
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--tooltip-bg);
+    color: var(--text-secondary);
     padding: 8px 12px;
     border-radius: 4px;
     font-size: 12px;
@@ -336,7 +336,7 @@
     transform: translateX(-50%);
     border-width: 6px;
     border-style: solid;
-    border-color: #333 transparent transparent transparent;
+    border-color: var(--tooltip-bg) transparent transparent transparent;
   }
 
   @keyframes tooltipFadeIn {

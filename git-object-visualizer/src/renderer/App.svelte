@@ -4,6 +4,7 @@
     recentRepositories,
     type RecentRepository,
   } from "./stores/recentRepositories";
+  import { theme } from "./stores/theme";
   import MainLayout from "./components/MainLayout.svelte";
 
   let isLoading = false;
@@ -74,6 +75,7 @@
   }
 </script>
 
+<div class="app" class:dark={$theme === 'dark'} class:light={$theme === 'light'}>
 {#if $isRepositoryOpen}
   <MainLayout
     repositoryName={$repository.name ?? ""}
@@ -124,6 +126,7 @@
     {/if}
   </div>
 {/if}
+</div>
 
 <style>
   :global(*) {
@@ -135,8 +138,90 @@
   :global(body) {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
       Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    background-color: #1e1e1e;
-    color: #fff;
+  }
+
+  /* Theme CSS Variables */
+  .app {
+    height: 100vh;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .app.dark {
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d2d;
+    --bg-hover: #333333;
+    --bg-selected: #264f78;
+    --border-color: #3c3c3c;
+    --border-hover: #4a9eff;
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #888888;
+    --text-dimmed: #666666;
+    --accent-color: #4a9eff;
+    --accent-hover: #3a8eef;
+    --error-color: #ff6b6b;
+    --success-color: #50c878;
+    --code-bg: #1e1e1e;
+    --code-text: #c3e88d;
+    --spinner-track: #333333;
+    --spinner-color: #4a90d9;
+    --overlay-bg: rgba(0, 0, 0, 0.3);
+    --tooltip-bg: #333333;
+    --scrollbar-track: #2d2d2d;
+    --scrollbar-thumb: #555555;
+    --scrollbar-thumb-hover: #666666;
+    /* Graph node colors - dark theme */
+    --node-commit: #4a90d9;
+    --node-tree: #50c878;
+    --node-blob: #f5a623;
+    --node-stroke: #ffffff;
+    --edge-color: #666666;
+    --arrow-color: #666666;
+    --node-label-color: #cccccc;
+    --node-name-color: #888888;
+
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  .app.light {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --bg-tertiary: #e8e8e8;
+    --bg-hover: #d0d0d0;
+    --bg-selected: #cce5ff;
+    --border-color: #d0d0d0;
+    --border-hover: #4a9eff;
+    --text-primary: #1e1e1e;
+    --text-secondary: #333333;
+    --text-muted: #666666;
+    --text-dimmed: #999999;
+    --accent-color: #0066cc;
+    --accent-hover: #0055aa;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --code-bg: #f5f5f5;
+    --code-text: #2e7d32;
+    --spinner-track: #d0d0d0;
+    --spinner-color: #4a90d9;
+    --overlay-bg: rgba(0, 0, 0, 0.2);
+    --tooltip-bg: #333333;
+    --scrollbar-track: #e0e0e0;
+    --scrollbar-thumb: #b0b0b0;
+    --scrollbar-thumb-hover: #909090;
+    /* Graph node colors - light theme (adjusted for visibility) */
+    --node-commit: #2563eb;
+    --node-tree: #16a34a;
+    --node-blob: #ea580c;
+    --node-stroke: #1e1e1e;
+    --edge-color: #999999;
+    --arrow-color: #999999;
+    --node-label-color: #333333;
+    --node-name-color: #666666;
+
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
 
   .welcome {
@@ -151,17 +236,18 @@
   .welcome h1 {
     font-size: 2rem;
     margin-bottom: 1rem;
+    color: var(--text-primary);
   }
 
   .welcome p {
-    color: #888;
+    color: var(--text-muted);
   }
 
   .open-repo-btn {
     margin-top: 2rem;
     padding: 1rem 2rem;
     font-size: 1.1rem;
-    background-color: #4a9eff;
+    background-color: var(--accent-color);
     color: white;
     border: none;
     border-radius: 8px;
@@ -170,17 +256,17 @@
   }
 
   .open-repo-btn:hover:not(:disabled) {
-    background-color: #3a8eef;
+    background-color: var(--accent-hover);
   }
 
   .open-repo-btn:disabled {
-    background-color: #666;
+    background-color: var(--text-muted);
     cursor: not-allowed;
   }
 
   .error {
     margin-top: 1rem;
-    color: #ff6b6b;
+    color: var(--error-color);
     font-size: 0.9rem;
   }
 
@@ -192,7 +278,7 @@
 
   .recent-section h2 {
     font-size: 1rem;
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 1rem;
     text-align: left;
   }
@@ -208,12 +294,12 @@
     width: 100%;
     padding: 0.75rem 1rem;
     margin-bottom: 0.5rem;
-    background-color: #2a2a2a;
-    border: 1px solid #3a3a3a;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     text-align: left;
-    color: #fff;
+    color: var(--text-primary);
     transition:
       background-color 0.2s,
       border-color 0.2s;
@@ -221,8 +307,8 @@
   }
 
   .recent-item:hover:not(:disabled) {
-    background-color: #333;
-    border-color: #4a9eff;
+    background-color: var(--bg-hover);
+    border-color: var(--border-hover);
   }
 
   .recent-item:disabled {
@@ -238,7 +324,7 @@
 
   .repo-path {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
     word-break: break-all;
   }
 
@@ -248,6 +334,6 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: 0.8rem;
-    color: #4a9eff;
+    color: var(--accent-color);
   }
 </style>

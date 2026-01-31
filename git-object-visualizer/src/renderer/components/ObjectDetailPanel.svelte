@@ -376,7 +376,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: var(--overlay-bg);
     z-index: 99;
   }
 
@@ -386,8 +386,8 @@
     right: 0;
     width: 400px;
     height: 100%;
-    background-color: #252526;
-    border-left: 1px solid #3c3c3c;
+    background-color: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
     z-index: 100;
     display: flex;
     flex-direction: column;
@@ -408,7 +408,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px;
-    border-bottom: 1px solid #3c3c3c;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .object-type-badge {
@@ -433,7 +433,7 @@
   .close-btn {
     background: none;
     border: none;
-    color: #888;
+    color: var(--text-muted);
     font-size: 18px;
     cursor: pointer;
     padding: 4px 8px;
@@ -442,19 +442,19 @@
   }
 
   .close-btn:hover {
-    background-color: #3c3c3c;
-    color: #fff;
+    background-color: var(--border-color);
+    color: var(--text-primary);
   }
 
   .sha-display, .name-display {
     padding: 12px 16px;
-    border-bottom: 1px solid #3c3c3c;
+    border-bottom: 1px solid var(--border-color);
   }
 
   .sha-label, .name-label {
     display: block;
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     margin-bottom: 4px;
   }
@@ -462,13 +462,13 @@
   .sha-value {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 12px;
-    color: #e0e0e0;
+    color: var(--text-secondary);
     word-break: break-all;
   }
 
   .name-value {
     font-size: 14px;
-    color: #fff;
+    color: var(--text-primary);
   }
 
   .panel-content {
@@ -484,18 +484,18 @@
     justify-content: center;
     padding: 32px;
     gap: 8px;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .error {
-    color: #f87171;
+    color: var(--error-color);
   }
 
   .spinner {
     width: 24px;
     height: 24px;
-    border: 3px solid #333;
-    border-top-color: #4a90d9;
+    border: 3px solid var(--spinner-track);
+    border-top-color: var(--spinner-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -510,14 +510,14 @@
 
   .detail-section h4 {
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     margin-bottom: 8px;
     font-weight: 600;
   }
 
   .detail-section p {
-    color: #e0e0e0;
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.5;
     margin: 0;
@@ -541,8 +541,8 @@
   .parent-list code {
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 12px;
-    color: #4a90d9;
-    background-color: #2d2d2d;
+    color: var(--spinner-color);
+    background-color: var(--bg-tertiary);
     padding: 2px 6px;
     border-radius: 3px;
   }
@@ -558,7 +558,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 0;
-    border-bottom: 1px solid #2d2d2d;
+    border-bottom: 1px solid var(--bg-tertiary);
   }
 
   .tree-entry:last-child {
@@ -570,13 +570,13 @@
   }
 
   .entry-name {
-    color: #e0e0e0;
+    color: var(--text-secondary);
     font-size: 14px;
     flex: 1;
   }
 
   .entry-type {
-    color: #666;
+    color: var(--text-dimmed);
     font-size: 12px;
   }
 
@@ -584,8 +584,8 @@
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 12px;
     line-height: 1.5;
-    color: #e0e0e0;
-    background-color: #1e1e1e;
+    color: var(--text-secondary);
+    background-color: var(--code-bg);
     padding: 12px;
     border-radius: 4px;
     overflow-x: auto;
@@ -599,12 +599,12 @@
   .git-commands-section {
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid #3c3c3c;
+    border-top: 1px solid var(--border-color);
   }
 
   .git-commands-section h4 {
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     margin-bottom: 12px;
     font-weight: 600;
@@ -627,11 +627,11 @@
     display: block;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 12px;
-    color: #c3e88d;
-    background-color: #1e1e1e;
+    color: var(--code-text);
+    background-color: var(--code-bg);
     padding: 10px 12px;
     border-radius: 4px 0 0 4px;
-    border: 1px solid #333;
+    border: 1px solid var(--spinner-track);
     border-right: none;
     word-break: break-all;
   }
@@ -641,8 +641,8 @@
     align-items: center;
     justify-content: center;
     padding: 0 12px;
-    background-color: #1e1e1e;
-    border: 1px solid #333;
+    background-color: var(--code-bg);
+    border: 1px solid var(--spinner-track);
     border-left: none;
     border-radius: 0 4px 4px 0;
     cursor: pointer;
@@ -650,16 +650,16 @@
   }
 
   .copy-btn:hover {
-    background-color: #2d2d2d;
+    background-color: var(--bg-tertiary);
   }
 
   .copy-icon {
     font-size: 14px;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .copy-icon.check {
-    color: #50c878;
+    color: var(--success-color);
   }
 
   /* Tooltip styles */
@@ -668,8 +668,8 @@
     bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
-    background-color: #333;
-    color: #e0e0e0;
+    background-color: var(--tooltip-bg);
+    color: var(--text-secondary);
     padding: 8px 12px;
     border-radius: 4px;
     font-size: 12px;
@@ -688,7 +688,7 @@
     transform: translateX(-50%);
     border-width: 6px;
     border-style: solid;
-    border-color: #333 transparent transparent transparent;
+    border-color: var(--tooltip-bg) transparent transparent transparent;
   }
 
   @keyframes tooltipFadeIn {

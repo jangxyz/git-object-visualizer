@@ -4,6 +4,7 @@
   import { repository } from '../stores/repository'
   import { commitStore } from '../stores/commit'
   import { selectedObjectStore, highlightedSha } from '../stores/selectedObject'
+  import { theme } from '../stores/theme'
   import { isIpcError } from '../utils/ipcError'
 
   interface GraphNode extends d3.SimulationNodeDatum {
@@ -50,11 +51,82 @@
     highlightNode(sha)
   })
 
-  // Node colors by type
-  const nodeColors: Record<string, string> = {
-    commit: '#4a90d9', // blue
-    tree: '#50c878',   // green
-    blob: '#f5a623'    // orange
+  // Subscribe to theme changes to update graph colors
+  const unsubscribeTheme = theme.subscribe(() => {
+    if (repoPath && selectedSha && currentNodes.length > 0) {
+      updateGraphColors()
+    }
+  })
+
+  // Get node colors from CSS variables
+  function getNodeColors(): Record<string, string> {
+    if (!container) {
+      return {
+        commit: '#4a90d9',
+        tree: '#50c878',
+        blob: '#f5a623'
+      }
+    }
+    const style = getComputedStyle(container)
+    return {
+      commit: style.getPropertyValue('--node-commit').trim() || '#4a90d9',
+      tree: style.getPropertyValue('--node-tree').trim() || '#50c878',
+      blob: style.getPropertyValue('--node-blob').trim() || '#f5a623'
+    }
+  }
+
+  function getGraphColors() {
+    if (!container) {
+      return {
+        nodeStroke: '#ffffff',
+        edgeColor: '#666666',
+        arrowColor: '#666666',
+        labelColor: '#cccccc',
+        nameColor: '#888888'
+      }
+    }
+    const style = getComputedStyle(container)
+    return {
+      nodeStroke: style.getPropertyValue('--node-stroke').trim() || '#ffffff',
+      edgeColor: style.getPropertyValue('--edge-color').trim() || '#666666',
+      arrowColor: style.getPropertyValue('--arrow-color').trim() || '#666666',
+      labelColor: style.getPropertyValue('--node-label-color').trim() || '#cccccc',
+      nameColor: style.getPropertyValue('--node-name-color').trim() || '#888888'
+    }
+  }
+
+  function updateGraphColors() {
+    if (!graphGroup || !svg) return
+
+    const nodeColors = getNodeColors()
+    const graphColors = getGraphColors()
+
+    // Update node fill colors
+    graphGroup.selectAll<SVGCircleElement, GraphNode>('.node circle')
+      .attr('fill', (d) => nodeColors[d.type] || '#999')
+      .filter(':not(.highlighted)')
+      .attr('stroke', graphColors.nodeStroke)
+
+    // Update labels
+    graphGroup.selectAll<SVGTextElement, GraphNode>('.node text')
+      .filter(function() {
+        return (this as SVGTextElement).getAttribute('dy') === '30'
+      })
+      .attr('fill', graphColors.labelColor)
+
+    graphGroup.selectAll<SVGTextElement, GraphNode>('.node text')
+      .filter(function() {
+        return (this as SVGTextElement).getAttribute('dy') === '42'
+      })
+      .attr('fill', graphColors.nameColor)
+
+    // Update edges
+    graphGroup.selectAll('.links line')
+      .attr('stroke', graphColors.edgeColor)
+
+    // Update arrow marker
+    svg.select('#arrowhead path')
+      .attr('fill', graphColors.arrowColor)
   }
 
   function clearGraph() {
@@ -131,10 +203,12 @@
   function highlightNode(sha: string | null) {
     if (!graphGroup) return
 
+    const graphColors = getGraphColors()
+
     // Remove previous highlight
     graphGroup.selectAll('.node circle')
       .classed('highlighted', false)
-      .attr('stroke', '#fff')
+      .attr('stroke', graphColors.nodeStroke)
       .attr('stroke-width', 2)
 
     if (!sha) return
@@ -208,6 +282,9 @@
     const width = container.clientWidth
     const height = container.clientHeight
 
+    const nodeColors = getNodeColors()
+    const graphColors = getGraphColors()
+
     // Create SVG
     svg = d3.select(container)
       .append('svg')
@@ -226,7 +303,7 @@
       .attr('markerHeight', 6)
       .append('path')
       .attr('d', 'M 0,-5 L 10,0 L 0,5')
-      .attr('fill', '#666')
+      .attr('fill', graphColors.arrowColor)
 
     // Create zoom behavior with constraints
     zoomBehavior = d3.zoom<SVGSVGElement, unknown>()
@@ -260,7 +337,7 @@
       .selectAll('line')
       .data(edges)
       .join('line')
-      .attr('stroke', '#666')
+      .attr('stroke', graphColors.edgeColor)
       .attr('stroke-opacity', 0.6)
       .attr('stroke-width', 1.5)
       .attr('marker-end', 'url(#arrowhead)')
@@ -281,7 +358,7 @@
     node.append('circle')
       .attr('r', 15)
       .attr('fill', (d) => nodeColors[d.type] || '#999')
-      .attr('stroke', '#fff')
+      .attr('stroke', graphColors.nodeStroke)
       .attr('stroke-width', 2)
 
     // Add labels to nodes
@@ -290,7 +367,7 @@
       .attr('text-anchor', 'middle')
       .attr('dy', 30)
       .attr('font-size', '10px')
-      .attr('fill', '#ccc')
+      .attr('fill', graphColors.labelColor)
 
     // Add name labels if available
     node.filter((d) => d.name !== undefined)
@@ -299,7 +376,7 @@
       .attr('text-anchor', 'middle')
       .attr('dy', 42)
       .attr('font-size', '9px')
-      .attr('fill', '#888')
+      .attr('fill', graphColors.nameColor)
 
     // Update positions on tick
     simulation.on('tick', () => {
@@ -358,6 +435,7 @@
     unsubscribeRepo()
     unsubscribeCommit()
     unsubscribeHighlight()
+    unsubscribeTheme()
     clearGraph()
   })
 </script>
@@ -392,7 +470,7 @@
   .object-graph {
     height: 100%;
     width: 100%;
-    background-color: #1e1e1e;
+    background-color: var(--bg-primary);
     position: relative;
     overflow: hidden;
   }
@@ -403,13 +481,13 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .panel-title {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 0.5rem;
@@ -427,18 +505,18 @@
     justify-content: center;
     height: 100%;
     gap: 0.5rem;
-    color: #888;
+    color: var(--text-muted);
   }
 
   .error {
-    color: #f87171;
+    color: var(--error-color);
   }
 
   .spinner {
     width: 24px;
     height: 24px;
-    border: 3px solid #333;
-    border-top-color: #4a90d9;
+    border: 3px solid var(--spinner-track);
+    border-top-color: var(--spinner-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -486,10 +564,10 @@
   .zoom-btn {
     width: 32px;
     height: 32px;
-    border: 1px solid #444;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
-    background-color: #2d2d2d;
-    color: #ccc;
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
     font-size: 16px;
     font-weight: bold;
     cursor: pointer;
@@ -500,12 +578,12 @@
   }
 
   .zoom-btn:hover {
-    background-color: #3d3d3d;
-    border-color: #555;
+    background-color: var(--bg-hover);
+    border-color: var(--text-dimmed);
   }
 
   .zoom-btn:active {
-    background-color: #4d4d4d;
+    background-color: var(--text-dimmed);
   }
 
   .fit-btn {

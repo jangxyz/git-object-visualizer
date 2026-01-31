@@ -210,8 +210,8 @@
 <style>
   .file-explorer {
     height: 100%;
-    background-color: #1e1e1e;
-    border-right: 1px solid #3c3c3c;
+    background-color: var(--bg-primary);
+    border-right: 1px solid var(--border-color);
     padding: 1rem;
     overflow: auto;
     display: flex;
@@ -221,7 +221,7 @@
   .panel-title {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin: 0 0 1rem 0;
@@ -234,13 +234,13 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    color: #888;
+    color: var(--text-muted);
     padding: 2rem;
     text-align: center;
   }
 
   .error {
-    color: #f87171;
+    color: var(--error-color);
   }
 
   .empty {
@@ -250,8 +250,8 @@
   .spinner {
     width: 20px;
     height: 20px;
-    border: 2px solid #333;
-    border-top-color: #4a90d9;
+    border: 2px solid var(--spinner-track);
+    border-top-color: var(--spinner-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -285,7 +285,7 @@
     padding: 4px 8px;
     background: none;
     border: none;
-    color: #ccc;
+    color: var(--text-secondary);
     font-size: 0.875rem;
     text-align: left;
     cursor: pointer;
@@ -294,7 +294,7 @@
   }
 
   .tree-item-btn:hover {
-    background-color: #2d2d2d;
+    background-color: var(--bg-tertiary);
   }
 
   .tree-item-btn.folder {
@@ -308,7 +308,7 @@
   .expand-icon {
     width: 12px;
     font-size: 8px;
-    color: #888;
+    color: var(--text-muted);
     flex-shrink: 0;
   }
 
@@ -332,8 +332,8 @@
   .item-spinner {
     width: 12px;
     height: 12px;
-    border: 2px solid #333;
-    border-top-color: #4a90d9;
+    border: 2px solid var(--spinner-track);
+    border-top-color: var(--spinner-color);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     flex-shrink: 0;
