@@ -1,5 +1,6 @@
 <script lang="ts">
   import { repository, isRepositoryOpen } from './stores/repository'
+  import MainLayout from './components/MainLayout.svelte'
 
   let isLoading = false
 
@@ -31,15 +32,15 @@
       isLoading = false
     }
   }
+
+  function handleOpenAnother() {
+    repository.reset()
+  }
 </script>
 
-<main>
-  {#if $isRepositoryOpen}
-    <div class="repository-info">
-      <h1>{$repository.name}</h1>
-      <p class="path">{$repository.path}</p>
-    </div>
-  {:else}
+{#if $isRepositoryOpen}
+  <MainLayout repositoryName={$repository.name ?? ''} onOpenAnother={handleOpenAnother} />
+{:else}
     <div class="welcome">
       <h1>Git Object Visualizer</h1>
       <p>Git 내부 객체 구조를 시각적으로 탐색하세요</p>
@@ -56,8 +57,7 @@
         <p class="error">{$repository.error}</p>
       {/if}
     </div>
-  {/if}
-</main>
+{/if}
 
 <style>
   :global(*) {
@@ -73,7 +73,7 @@
     color: #fff;
   }
 
-  main {
+  .welcome {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -115,22 +115,6 @@
   .error {
     margin-top: 1rem;
     color: #ff6b6b;
-    font-size: 0.9rem;
-  }
-
-  .repository-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .repository-info h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .repository-info .path {
-    color: #888;
     font-size: 0.9rem;
   }
 </style>
