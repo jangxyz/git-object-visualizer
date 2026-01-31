@@ -4,6 +4,20 @@
   "description": "Git의 내부 객체 구조(blob, tree, commit, tag)를 시각적으로 탐색하고 학습할 수 있는 Electron + Svelte 데스크톱 애플리케이션",
   "userStories": [
     {
+      "id": "US-BUG-002",
+      "title": "Preload 스크립트 경로 오류 수정",
+      "description": "개발자로서, preload 스크립트가 올바르게 로드되어 앱이 정상 작동해야 한다.",
+      "acceptanceCriteria": [
+        "main/index.ts에서 preload 경로가 실제 빌드 출력(index.mjs)과 일치한다",
+        "앱 실행 시 'Unable to load preload script' 에러가 발생하지 않는다",
+        "저장소 열기 기능이 정상 동작한다",
+        "npm run check 통과 (typecheck + build)"
+      ],
+      "priority": -1,
+      "passes": true,
+      "notes": "✅ preload 경로를 index.js → index.mjs로 수정 (package.json type:module)"
+    },
+    {
       "id": "US-BUG-001",
       "title": "메인 프로세스 에러 로깅",
       "description": "개발자로서, IPC 핸들러에서 발생하는 에러를 main process 콘솔에 로깅하여 디버깅할 수 있어야 한다.",
@@ -11,7 +25,7 @@
         "모든 IPC 핸들러에서 에러 발생 시 console.error로 상세 에러 메시지를 출력한다",
         "에러 메시지에 함수명, 파라미터, 에러 스택 정보가 포함된다",
         "renderer에서는 에러 메시지를 포함한 에러 객체를 받아 사용자에게 표시할 수 있다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 0,
       "passes": true,
@@ -26,7 +40,7 @@
         "TypeScript가 설정되어 있다",
         "npm run dev로 개발 모드 실행 시 Electron 창이 열린다",
         "npm run build로 프로덕션 빌드가 성공한다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 1,
       "passes": true,
@@ -42,7 +56,7 @@
         "gitService.isValidRepository(path): .git 폴더 존재 여부를 확인하여 boolean 반환",
         "renderer에서 window.api.git.isValidRepository(path)로 호출 가능하다",
         "contextIsolation: true, nodeIntegration: false 보안 설정",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 2,
       "passes": true,
@@ -58,7 +72,7 @@
         "유효한 Git 저장소 선택 시 저장소 이름이 화면에 표시된다",
         "Git 저장소가 아닌 경우 '유효한 Git 저장소가 아닙니다' 에러 메시지를 표시한다",
         "저장소 경로가 Svelte store에 저장된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 3,
       "passes": true,
@@ -74,7 +88,7 @@
         "중앙: 객체 그래프 영역 (placeholder 텍스트 '객체 그래프')",
         "하단: 타임라인 영역 (placeholder 텍스트 '커밋 타임라인')",
         "헤더에 저장소 이름과 '다른 저장소 열기' 버튼이 표시된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 4,
       "passes": true,
@@ -90,7 +104,7 @@
         "git log --format 명령어를 사용하여 구현한다",
         "기본 limit은 50개로 설정한다",
         "IPC를 통해 renderer에서 호출 가능하다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 5,
       "passes": true,
@@ -106,7 +120,7 @@
         "커밋 클릭 시 해당 커밋이 선택 상태로 표시된다 (배경색 변경)",
         "선택된 커밋 SHA가 Svelte store에 저장된다",
         "저장소 열기 시 HEAD 커밋이 자동 선택된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 6,
       "passes": true,
@@ -122,7 +136,7 @@
         "gitService.getBlob(repoPath, sha): blob 내용을 문자열로 반환",
         "git cat-file 명령어를 사용하여 구현한다",
         "IPC를 통해 renderer에서 호출 가능하다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 7,
       "passes": true,
@@ -138,7 +152,7 @@
         "commit → tree → blob/tree 관계를 재귀적으로 탐색한다",
         "maxDepth로 탐색 깊이를 제한한다 (기본값: 3)",
         "노드 label은 SHA 앞 7자리, name은 파일/폴더 이름(있는 경우)",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 8,
       "passes": true,
@@ -154,7 +168,7 @@
         "객체 간 참조 관계가 화살표로 연결된다",
         "각 노드에 SHA 앞 7자리가 텍스트로 표시된다",
         "타임라인에서 커밋 선택이 변경되면 그래프가 업데이트된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 9,
       "passes": true,
@@ -170,7 +184,7 @@
         "줌 범위는 0.1x ~ 3x로 제한된다",
         "우측 상단에 '+', '-', '맞춤' 버튼이 있다",
         "'맞춤' 버튼 클릭 시 전체 그래프가 화면에 맞게 조정된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 10,
       "passes": true,
@@ -187,7 +201,7 @@
         "tree: 포함된 항목 목록(이름, 타입) 표시",
         "blob: 파일 내용 미리보기 (최대 50줄, 모노스페이스 폰트)",
         "패널 닫기(X) 버튼이 있다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 11,
       "passes": true,
@@ -203,7 +217,7 @@
         "폴더 아이콘(📁)과 파일 아이콘(📄)으로 구분된다",
         "초기에는 루트 레벨만 표시된다",
         "타임라인에서 커밋 선택 변경 시 트리가 업데이트된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 12,
       "passes": true,
@@ -219,7 +233,7 @@
         "그래프가 해당 노드 위치로 자동 이동(팬)된다",
         "상세 정보 패널도 해당 객체 정보로 업데이트된다",
         "다른 항목 선택 시 이전 하이라이트는 해제된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 13,
       "passes": true,
@@ -235,7 +249,7 @@
         "tree 객체: git ls-tree <sha> 표시",
         "blob 객체: git cat-file -p <sha> 또는 git show <sha> 표시",
         "명령어가 코드 블록 스타일(배경색, 모노스페이스)로 표시된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 14,
       "passes": true,
@@ -250,7 +264,7 @@
         "버튼 클릭 시 명령어가 클립보드에 복사된다",
         "복사 성공 시 아이콘이 체크(✓)로 변경되고 1.5초 후 원래대로 돌아온다",
         "타임라인의 각 커밋에도 'git show <sha>' 복사 버튼이 있다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 15,
       "passes": true,
@@ -266,11 +280,11 @@
         "git ls-tree: 'tree 객체의 내용을 목록 형태로 출력합니다'",
         "git show: '커밋의 상세 정보와 변경 내용(diff)을 출력합니다'",
         "git log: '커밋 히스토리를 출력합니다'",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 16,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ 확인 가능: 명령어 호버 시 0.5초 후 설명 툴팁 표시"
     },
     {
       "id": "US-017",
@@ -282,11 +296,11 @@
         "각 항목에 저장소 이름과 경로가 표시된다",
         "항목 클릭 시 해당 저장소가 열린다",
         "존재하지 않는 경로 선택 시 에러 표시 후 목록에서 제거된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 17,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ 확인 가능: 시작 화면에서 최근 저장소 목록 표시 및 선택 가능"
     },
     {
       "id": "US-018",
@@ -298,11 +312,11 @@
         "드래그 중 커서가 col-resize 또는 row-resize로 변경된다",
         "각 영역의 최소 크기가 100px로 보장된다",
         "조절된 크기가 localStorage에 저장되어 앱 재시작 시 유지된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 18,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ 확인 가능: 드래그로 패널 크기 조절, 키보드로도 조절 가능"
     },
     {
       "id": "US-019",
@@ -314,7 +328,7 @@
         "버튼 클릭 시 테마가 토글되고 전체 UI 색상이 변경된다",
         "그래프 노드 색상도 테마에 맞게 조정된다",
         "선택한 테마가 localStorage에 저장되어 앱 재시작 시 유지된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 19,
       "passes": false,
@@ -329,7 +343,7 @@
         "그래프 로딩 중 '객체 그래프 생성 중...' 메시지가 표시된다",
         "Git 명령어 실패 시 에러 메시지가 토스트로 표시된다",
         "대용량 저장소에서 타임아웃 발생 시 '저장소가 너무 큽니다' 안내가 표시된다",
-        "Typecheck 통과"
+        "npm run check 통과 (typecheck + build)"
       ],
       "priority": 20,
       "passes": false,

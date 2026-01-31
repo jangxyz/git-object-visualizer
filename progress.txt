@@ -374,3 +374,91 @@
   - Button styling: use flex container with border-radius on opposite corners for connected button appearance
 
 ---
+
+## 2026-01-31 - US-016
+- What was implemented:
+  - Tooltip descriptions for Git CLI commands that appear after 0.5 second hover delay
+  - ObjectDetailPanel: tooltips for `git cat-file -p`, `git ls-tree`, `git show` commands
+  - CommitTimeline: tooltip for `git show` command on copy buttons
+  - Tooltip shows description of what each command does in Korean
+  - Tooltip styling with dark background, arrow pointer, and fade-in animation
+  - Timer-based delay (500ms) for tooltip appearance
+  - Proper cleanup of timers in onDestroy/onMount cleanup
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectDetailPanel.svelte (modified - added tooltip functionality)
+  - git-object-visualizer/src/renderer/components/CommitTimeline.svelte (modified - added tooltip for git show command)
+
+- **Learnings for future iterations:**
+  - Use setTimeout with state to implement delayed tooltips (showTooltip/hideTooltip pattern)
+  - Always clean up setTimeout timers in hideTooltip and onDestroy to prevent memory leaks
+  - Use `position: relative` on parent element for absolute-positioned tooltip
+  - CSS `::after` pseudo-element creates the tooltip arrow pointer
+  - Extract base command from full command (e.g., "git cat-file -p" from "git cat-file -p <sha>") for description lookup
+  - For elements inside clickable parents, wrap tooltip trigger in a separate div to avoid interference
+
+---
+
+## 2026-01-31 - US-017
+- What was implemented:
+  - Recent repositories store with localStorage persistence (max 5 entries)
+  - '최근 저장소' section on start screen showing repository name and path
+  - Click to open recent repository functionality
+  - Loading indicator on individual repository item when opening
+  - Error handling: removes repository from list if path doesn't exist
+  - Auto-add to recent list when opening a repository via folder dialog
+
+- Files changed:
+  - git-object-visualizer/src/renderer/stores/recentRepositories.ts (new - recent repositories store with localStorage)
+  - git-object-visualizer/src/renderer/App.svelte (modified - added recent repositories section and related logic)
+
+- **Learnings for future iterations:**
+  - Use STORAGE_KEY constant for localStorage key to avoid typos
+  - Store pattern: load from localStorage in initial state, save in each mutation method
+  - For list updates: filter existing entry first, then add new entry at beginning, then slice to limit
+  - Use `(repo.path)` as keyed each block identifier for efficient Svelte list updates
+  - Track loading state per-item using `loadingRepoPath` to show loading indicator on specific item
+  - Separate `openRepositoryByPath()` helper for opening from recent list vs folder dialog
+
+---
+
+## 2026-01-31 - US-018
+- What was implemented:
+  - Resizable panels between file explorer/graph and graph/timeline areas
+  - Horizontal resizer (6px width) between file explorer and object graph
+  - Vertical resizer (6px height) between top section and commit timeline
+  - Mouse drag resize with col-resize/row-resize cursor during drag
+  - Minimum 100px size constraint for all panels
+  - localStorage persistence for panel sizes (restored on app restart)
+  - Keyboard accessibility: arrow keys to resize when resizer is focused
+  - Fixed nested button a11y issue in CommitTimeline (changed outer button to div with role="button")
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/MainLayout.svelte (modified - added full resizer implementation)
+  - git-object-visualizer/src/renderer/components/CommitTimeline.svelte (modified - fixed nested button a11y issue)
+
+- **Learnings for future iterations:**
+  - Use document-level mousemove/mouseup listeners for drag operations (clean up in onDestroy)
+  - getBoundingClientRect() for calculating relative positions during resize
+  - Svelte 5: use `class:condition={bool}` for dynamic classes like `resizing-horizontal`
+  - For a11y with separators: use role="separator", aria-orientation, and keyboard handlers
+  - Cannot nest `<button>` inside `<button>` - use div with role="button" tabindex="0" instead
+  - Svelte ignores a11y warnings with `<!-- svelte-ignore a11y_warning_name -->` comments
+
+---
+
+## 2026-01-31 - US-BUG-002
+- What was implemented:
+  - Fixed preload script path in main/index.ts from index.js to index.mjs
+  - The project uses "type": "module" in package.json which causes electron-vite to output .mjs files
+  - The preload was building as index.mjs but main process referenced index.js
+
+- Files changed:
+  - git-object-visualizer/src/main/index.ts (modified - preload path fix)
+
+- **Learnings for future iterations:**
+  - When package.json has "type": "module", electron-vite outputs preload as .mjs extension
+  - Always verify preload path matches actual build output in out/preload/ directory
+  - Use `ls out/preload/` after build to confirm output filename
+
+---
