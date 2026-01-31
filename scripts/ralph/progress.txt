@@ -1,3 +1,28 @@
 # Ralph Progress Log
 Started: Sat Jan 31 09:28:42 KST 2026
 ---
+
+## Codebase Patterns
+- CSS 변수는 App.svelte의 `.app.dark` 및 `.app.light` 클래스에 정의됨
+- 테마 변경은 `theme` store를 통해 관리 (stores/theme.ts)
+- D3.js 그래프 색상은 `getComputedStyle()`로 CSS 변수를 읽어서 적용
+- 컴포넌트 스타일은 하드코딩 대신 `var(--variable-name)` 형식 사용
+---
+
+## 2026-01-31 11:13 - US-019
+- What was implemented:
+  - 다크/라이트 테마 토글 기능 구현
+  - theme store 생성 (localStorage 영속성)
+  - 헤더에 테마 토글 버튼 추가 (🌙/☀️)
+  - 모든 컴포넌트에 CSS 변수 적용
+  - ObjectGraph의 D3.js 노드 색상 테마 지원
+- Files changed:
+  - stores/theme.ts (신규)
+  - App.svelte (CSS 변수 정의 및 테마 클래스)
+  - Header.svelte (토글 버튼)
+  - MainLayout.svelte, FileExplorer.svelte, CommitTimeline.svelte, ObjectDetailPanel.svelte, ObjectGraph.svelte (CSS 변수 적용)
+- **Learnings for future iterations:**
+  - D3.js로 생성된 SVG 요소는 CSS 변수를 직접 사용할 수 없어 `getComputedStyle()`로 런타임에 읽어야 함
+  - 테마 변경 시 그래프 색상 업데이트를 위해 theme store 구독 필요
+  - Svelte 5에서는 `$state()` 없이 선언된 변수는 반응형이 아님 (기존 경고)
+---

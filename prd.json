@@ -331,8 +331,8 @@
         "npm run check 통과 (typecheck + build)"
       ],
       "priority": 19,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ 확인 가능: 헤더에서 테마 토글 버튼 클릭으로 다크/라이트 전환"
     },
     {
       "id": "US-020",
