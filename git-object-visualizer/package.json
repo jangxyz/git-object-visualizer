@@ -1,0 +1,38 @@
+{
+  "name": "git-object-visualizer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Git의 내부 객체 구조(blob, tree, commit, tag)를 시각적으로 탐색하고 학습할 수 있는 데스크톱 애플리케이션",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
+    "typecheck:web": "svelte-check --tsconfig ./tsconfig.json",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web"
+  },
+  "keywords": [
+    "git",
+    "visualizer",
+    "electron",
+    "svelte"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron-toolkit/utils": "^4.0.0",
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "@types/node": "^22.10.10",
+    "@typescript-eslint/types": "^8.54.0",
+    "electron": "^34.0.2",
+    "electron-builder": "^25.1.8",
+    "electron-vite": "^3.0.0",
+    "svelte": "^5.19.5",
+    "svelte-check": "^4.1.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
+  }
+}
