@@ -123,6 +123,22 @@
     return lines.slice(0, maxLines).join('\n') + '\n...'
   }
 
+  // Copy to clipboard state - track which command was just copied
+  let copiedCommand = $state<string | null>(null)
+
+  async function copyToClipboard(command: string) {
+    try {
+      await navigator.clipboard.writeText(command)
+      copiedCommand = command
+      // Reset after 1.5 seconds
+      setTimeout(() => {
+        copiedCommand = null
+      }, 1500)
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
+  }
+
   onDestroy(() => {
     unsubscribeRepo()
     unsubscribeObject()
@@ -217,19 +233,67 @@
       <div class="git-commands-section">
         <h4>관련 Git 명령어</h4>
         {#if $selectedObject.type === 'commit'}
+          {@const cmd = `git cat-file -p ${$selectedObject.id}`}
           <div class="command-block">
-            <code>git cat-file -p {$selectedObject.id}</code>
+            <code>{cmd}</code>
+            <button
+              class="copy-btn"
+              onclick={() => copyToClipboard(cmd)}
+              title="명령어 복사"
+            >
+              {#if copiedCommand === cmd}
+                <span class="copy-icon check">&#10003;</span>
+              {:else}
+                <span class="copy-icon">&#128203;</span>
+              {/if}
+            </button>
           </div>
         {:else if $selectedObject.type === 'tree'}
+          {@const cmd = `git ls-tree ${$selectedObject.id}`}
           <div class="command-block">
-            <code>git ls-tree {$selectedObject.id}</code>
+            <code>{cmd}</code>
+            <button
+              class="copy-btn"
+              onclick={() => copyToClipboard(cmd)}
+              title="명령어 복사"
+            >
+              {#if copiedCommand === cmd}
+                <span class="copy-icon check">&#10003;</span>
+              {:else}
+                <span class="copy-icon">&#128203;</span>
+              {/if}
+            </button>
           </div>
         {:else if $selectedObject.type === 'blob'}
+          {@const cmd1 = `git cat-file -p ${$selectedObject.id}`}
+          {@const cmd2 = `git show ${$selectedObject.id}`}
           <div class="command-block">
-            <code>git cat-file -p {$selectedObject.id}</code>
+            <code>{cmd1}</code>
+            <button
+              class="copy-btn"
+              onclick={() => copyToClipboard(cmd1)}
+              title="명령어 복사"
+            >
+              {#if copiedCommand === cmd1}
+                <span class="copy-icon check">&#10003;</span>
+              {:else}
+                <span class="copy-icon">&#128203;</span>
+              {/if}
+            </button>
           </div>
           <div class="command-block">
-            <code>git show {$selectedObject.id}</code>
+            <code>{cmd2}</code>
+            <button
+              class="copy-btn"
+              onclick={() => copyToClipboard(cmd2)}
+              title="명령어 복사"
+            >
+              {#if copiedCommand === cmd2}
+                <span class="copy-icon check">&#10003;</span>
+              {:else}
+                <span class="copy-icon">&#128203;</span>
+              {/if}
+            </button>
           </div>
         {/if}
       </div>
@@ -480,6 +544,9 @@
 
   .command-block {
     margin-bottom: 8px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
   }
 
   .command-block:last-child {
@@ -487,14 +554,42 @@
   }
 
   .command-block code {
+    flex: 1;
     display: block;
     font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
     font-size: 12px;
     color: #c3e88d;
     background-color: #1e1e1e;
     padding: 10px 12px;
-    border-radius: 4px;
+    border-radius: 4px 0 0 4px;
     border: 1px solid #333;
+    border-right: none;
     word-break: break-all;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    background-color: #1e1e1e;
+    border: 1px solid #333;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .copy-btn:hover {
+    background-color: #2d2d2d;
+  }
+
+  .copy-icon {
+    font-size: 14px;
+    color: #888;
+  }
+
+  .copy-icon.check {
+    color: #50c878;
   }
 </style>

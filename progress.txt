@@ -8,6 +8,11 @@
 - Expose APIs via contextBridge.exposeInMainWorld('api', { ... }) in preload
 - TypeScript types for window.api go in src/renderer/types/api.d.ts
 - Svelte stores go in src/renderer/stores/
+- Svelte 5 components use `$props()` for props: `let { propName }: Props = $props()`
+- Components go in src/renderer/components/
+- Git commands use execFile (promisified) from child_process in gitService.ts
+- IPC error handling: All handlers wrapped in try-catch, return { error: true, message, handlerName } on error
+- Use isIpcError() type guard from src/renderer/utils/ipcError.ts to check for IPC errors in renderer
 
 ---
 
@@ -66,5 +71,306 @@
   - Extract repo name from path using path.split(/[/\\]/).pop()
   - Svelte 5 uses onclick={handler} instead of on:click={handler}
   - Use writable/derived from svelte/store for state management
+
+---
+
+## 2026-01-31 - US-004
+- What was implemented:
+  - 3분할 레이아웃 구조 (좌측: 파일 탐색기, 중앙: 객체 그래프, 하단: 커밋 타임라인)
+  - Header 컴포넌트 with repository name and "다른 저장소 열기" button
+  - MainLayout 컴포넌트 for layout management
+  - FileExplorer, ObjectGraph, CommitTimeline placeholder 컴포넌트
+  - handleOpenAnother function to reset repository state
+
+- Files changed:
+  - git-object-visualizer/src/renderer/App.svelte (modified - added MainLayout integration)
+  - git-object-visualizer/src/renderer/components/Header.svelte (new)
+  - git-object-visualizer/src/renderer/components/MainLayout.svelte (new)
+  - git-object-visualizer/src/renderer/components/FileExplorer.svelte (new)
+  - git-object-visualizer/src/renderer/components/ObjectGraph.svelte (new)
+  - git-object-visualizer/src/renderer/components/CommitTimeline.svelte (new)
+
+- **Learnings for future iterations:**
+  - Svelte 5 uses `$props()` for component props with interface Props pattern
+  - Use flexbox with flex-shrink: 0 for fixed-size panels in layout
+  - Repository store has reset() method for clearing state
+
+---
+
+## 2026-01-31 - US-006
+- What was implemented:
+  - Svelte store for commit state (commits, selectedSha, isLoading, error) in commit.ts
+  - CommitTimeline component with horizontal scrollable commit list
+  - Commit selection with visual highlighting (blue background)
+  - Auto-select HEAD commit when repository opens
+  - Display SHA (first 7 chars), message (first line, max 50 chars), and author
+
+- Files changed:
+  - git-object-visualizer/src/renderer/stores/commit.ts (new - commit state store)
+  - git-object-visualizer/src/renderer/components/CommitTimeline.svelte (modified - full implementation)
+
+- **Learnings for future iterations:**
+  - Use onMount with repository.subscribe to react to repository changes
+  - Commit store pattern: commitStore with setCommits, selectCommit, reset methods
+  - selectedCommit derived store makes it easy to get full commit object from selectedSha
+  - Use class:selected={condition} for conditional CSS classes in Svelte 5
+  - Horizontal scrollbar styling uses ::-webkit-scrollbar pseudo-elements
+
+---
+
+## 2026-01-31 - US-005
+- What was implemented:
+  - getCommitHistory function in gitService.ts using git log --format
+  - IPC handler for git:getCommitHistory in main/index.ts
+  - API exposed via preload (window.api.git.getCommitHistory)
+  - TypeScript types for Commit interface in api.d.ts
+  - Uses custom separator to reliably parse git log output
+
+- Files changed:
+  - git-object-visualizer/src/main/gitService.ts (modified - added getCommitHistory, Commit interface)
+  - git-object-visualizer/src/main/index.ts (modified - added IPC handler)
+  - git-object-visualizer/src/preload/index.ts (modified - added getCommitHistory API)
+  - git-object-visualizer/src/renderer/types/api.d.ts (modified - added Commit type and getCommitHistory)
+
+- **Learnings for future iterations:**
+  - Use execFile (promisified) from child_process for running git commands
+  - Use custom separator like '---COMMIT_SEPARATOR---' in git log format to reliably parse multi-line output
+  - git log format: %H (full hash), %s (subject), %an (author name), %aI (ISO 8601 date)
+  - Default limit is 50 commits as per requirements
+
+---
+
+## 2026-01-31 - US-007
+- What was implemented:
+  - getCommit function: 커밋 객체의 상세 정보(tree, parents, author, committer, message) 조회
+  - getTree function: 트리 객체의 항목 목록(mode, type, sha, name) 조회
+  - getBlob function: Blob 객체 내용을 문자열로 반환
+  - IPC handlers for git:getCommit, git:getTree, git:getBlob
+  - APIs exposed via preload (window.api.git.getCommit, getTree, getBlob)
+  - TypeScript types: CommitObject, TreeEntry interfaces
+
+- Files changed:
+  - git-object-visualizer/src/main/gitService.ts (modified - added getCommit, getTree, getBlob functions)
+  - git-object-visualizer/src/main/index.ts (modified - added IPC handlers)
+  - git-object-visualizer/src/preload/index.ts (modified - added new APIs)
+  - git-object-visualizer/src/renderer/types/api.d.ts (modified - added CommitObject, TreeEntry types)
+
+- **Learnings for future iterations:**
+  - git cat-file -p <sha> for reading commit/blob objects
+  - git ls-tree <sha> for reading tree objects
+  - Commit object parsing: lines before empty line are headers (tree, parent, author, committer), after empty line is message
+  - Author/committer format: "Name <email> timestamp timezone" - use regex to parse
+  - ls-tree output format: "<mode> <type> <sha>\t<name>" - note the tab separator before name
+
+---
+
+## 2026-01-31 - US-008
+- What was implemented:
+  - buildObjectGraph function: 선택된 커밋의 객체들을 그래프 데이터 구조로 변환
+  - GraphNode, GraphEdge, ObjectGraph interfaces in gitService.ts
+  - Recursive traversal of commit → tree → blob/tree relationships
+  - maxDepth parameter to limit traversal depth (default: 3)
+  - IPC handler for git:buildObjectGraph in main/index.ts
+  - API exposed via preload (window.api.git.buildObjectGraph)
+  - TypeScript types for GraphNode, GraphEdge, ObjectGraph in api.d.ts
+
+- Files changed:
+  - git-object-visualizer/src/main/gitService.ts (modified - added buildObjectGraph function and types)
+  - git-object-visualizer/src/main/index.ts (modified - added IPC handler)
+  - git-object-visualizer/src/preload/index.ts (modified - added buildObjectGraph API and types)
+  - git-object-visualizer/src/renderer/types/api.d.ts (modified - added GraphNode, GraphEdge, ObjectGraph types)
+
+- **Learnings for future iterations:**
+  - Use Set<string> to track visited nodes to avoid duplicates in graph
+  - Even if a node is already visited, edges should still be added for proper graph connections
+  - Depth starts at 1 for the root tree (commit is at depth 0)
+  - Node label is SHA.substring(0, 7), name is optional (for tree entries)
+
+---
+
+## 2026-01-31 - US-BUG-001
+- What was implemented:
+  - IPC 에러 로깅 헬퍼 함수 (logAndFormatError) 추가
+  - 모든 IPC 핸들러에 try-catch 블록으로 에러 처리 래핑
+  - 에러 발생 시 console.error로 핸들러 이름, 파라미터, 에러 메시지, 스택 트레이스 출력
+  - 에러 응답 객체 { error: true, message, handlerName } 형태로 renderer에 전달
+  - IpcError 타입 및 isIpcError 타입 가드 함수 추가
+  - GitApi, DialogApi 반환 타입에 IpcError 유니온 타입 추가
+
+- Files changed:
+  - git-object-visualizer/src/main/index.ts (modified - 에러 처리 추가)
+  - git-object-visualizer/src/renderer/types/api.d.ts (modified - IpcError 타입 추가)
+  - git-object-visualizer/src/renderer/utils/ipcError.ts (new - isIpcError 타입 가드)
+
+- **Learnings for future iterations:**
+  - IPC 핸들러에서 에러 발생 시 throw 하지 않고 에러 객체를 반환해야 renderer에서 처리 가능
+  - 타입 가드 함수(isIpcError)를 사용해서 renderer에서 에러 응답 여부를 안전하게 체크
+  - API 타입에서 반환 타입을 `T | IpcError` 유니온으로 정의하면 타입 안전성 확보
+
+---
+
+## 2026-01-31 - US-009
+- What was implemented:
+  - D3.js force-directed graph visualization in ObjectGraph.svelte
+  - Node colors by type: commit (blue #4a90d9), tree (green #50c878), blob (orange #f5a623)
+  - Arrow markers on edges to show object relationships (parent → child)
+  - SHA labels (first 7 characters) displayed below each node
+  - Optional name labels for tree entries (files/folders)
+  - Subscribe to commitStore for automatic graph updates on commit selection
+  - Loading state with spinner while fetching graph data
+  - Error handling with user-friendly messages
+  - Node dragging support using D3 drag behavior
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectGraph.svelte (modified - full D3 implementation)
+
+- **Learnings for future iterations:**
+  - D3 force simulation needs proper typing: `d3.Simulation<GraphNode, GraphEdge>`
+  - Use `d3.forceLink().id()` to specify node ID accessor for edge resolution
+  - SVG marker for arrows: define in `<defs>` with `marker-end` attribute on lines
+  - D3 drag in TypeScript: use `d3.drag<SVGGElement, GraphNode>()` for proper event typing
+  - Svelte store subscriptions must be unsubscribed in `onDestroy` to prevent memory leaks
+  - Use `:global()` in Svelte styles to style dynamically created SVG elements
+
+---
+
+## 2026-01-31 - US-010
+- What was implemented:
+  - D3 zoom behavior for mouse wheel zoom and drag pan interactions
+  - Zoom range constrained to 0.1x - 3x using scaleExtent
+  - Zoom control buttons (+, -, 맞춤) in the top-right corner of graph area
+  - handleZoomIn function: scales by 1.3x with smooth transition
+  - handleZoomOut function: scales by 0.7x with smooth transition
+  - handleFitToScreen function: calculates bounding box of all nodes and fits them to viewport
+  - Disabled double-click zoom to prevent accidental zooming
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectGraph.svelte (modified - added zoom/pan functionality)
+
+- **Learnings for future iterations:**
+  - D3 zoom behavior: `d3.zoom<SVGSVGElement, unknown>()` for proper TypeScript typing
+  - Use `scaleExtent([min, max])` to constrain zoom range
+  - Store zoomBehavior reference for programmatic zoom control (scaleBy, transform)
+  - For fit-to-screen: calculate node bounding box, then compute scale and translation to center
+  - Apply zoom transform to a container `<g>` element, not the SVG itself
+  - Use `svg.call(zoomBehavior)` to apply zoom behavior, `.on('dblclick.zoom', null)` to disable double-click zoom
+  - `d3.zoomIdentity.translate(x, y).scale(s)` creates a transform for programmatic zoom
+
+---
+
+## 2026-01-31 - US-011
+- What was implemented:
+  - ObjectDetailPanel component with slide-in animation from the right
+  - selectedObject store to manage the currently selected object state
+  - Node click handling in ObjectGraph to trigger the detail panel
+  - Commit details display: author, date, message, parent SHA list
+  - Tree details display: items list with name, type (folder/file icons)
+  - Blob details display: file content preview with max 50 lines, monospace font
+  - Close button (X) to dismiss the panel
+  - Panel overlay to close when clicking outside
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectDetailPanel.svelte (new - detail panel component)
+  - git-object-visualizer/src/renderer/stores/selectedObject.ts (new - selected object state store)
+  - git-object-visualizer/src/renderer/components/ObjectGraph.svelte (modified - added node click handler)
+  - git-object-visualizer/src/renderer/components/MainLayout.svelte (modified - added ObjectDetailPanel)
+
+- **Learnings for future iterations:**
+  - Use a separate store (selectedObjectStore) to manage selected object state and panel visibility
+  - Svelte 5 derived stores work well for extracting specific state like `isDetailPanelOpen`
+  - Panel slide-in animation: use `@keyframes slideIn` with `transform: translateX()`
+  - For overlay clicks, add proper a11y attributes: role="button", tabindex="-1", onkeydown for Escape
+  - Use isIpcError() to check for IPC errors when loading object data
+  - Truncate blob content to 50 lines using split/slice/join pattern
+
+---
+
+## 2026-01-31 - US-012
+- What was implemented:
+  - FileExplorer component with tree view of files and folders
+  - fileTreeStore for managing tree state (nodes, expansion, loading)
+  - Lazy loading of tree children - only loads when folder is expanded
+  - Folder icons (📁) and file icons (📄) to distinguish types
+  - Expand/collapse functionality with visual indicators (▶/▼)
+  - Sorted display: folders first, then files, alphabetically
+  - Subscribe to commitStore for auto-update when commit selection changes
+  - Loading states for both initial load and folder expansion
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/FileExplorer.svelte (modified - full tree implementation)
+  - git-object-visualizer/src/renderer/stores/fileTree.ts (new - file tree state store)
+
+- **Learnings for future iterations:**
+  - Use Svelte 5 snippets with `{@render snippet(args)}` for recursive tree rendering
+  - Store pattern: use helper functions (toggleNodeExpanded, setChildrenForNode) for recursive state updates
+  - Sort tree entries: folders first (`type === 'tree' ? -1 : 1`), then alphabetically by name
+  - For tree indentation, use inline style with calculated padding-left based on depth
+  - Use $state() for reactive local state that subscribes to external stores
+
+---
+
+## 2026-01-31 - US-013
+- What was implemented:
+  - File explorer to object graph connection
+  - Added highlightedSha state to selectedObjectStore for tracking highlighted nodes
+  - selectAndHighlight() method in store for combined selection + highlight from file explorer
+  - clearHighlight() method to remove highlight when selecting via different source
+  - highlightNode() function in ObjectGraph that adds red border and pulse animation
+  - panToNode() function to auto-pan graph to center on highlighted node
+  - Click handlers on both files and folders in FileExplorer to trigger highlight
+  - Previous highlight automatically cleared when new item selected
+
+- Files changed:
+  - git-object-visualizer/src/renderer/stores/selectedObject.ts (modified - added highlightedSha state and methods)
+  - git-object-visualizer/src/renderer/components/FileExplorer.svelte (modified - added item click handlers)
+  - git-object-visualizer/src/renderer/components/ObjectGraph.svelte (modified - added highlight subscription, visual highlight, and pan-to-node)
+
+- **Learnings for future iterations:**
+  - D3 selection filter: `selectAll().filter(d => condition)` to find specific nodes in the graph
+  - CSS animation on dynamically created SVG: use `:global(.node circle.highlighted)` with `@keyframes`
+  - To pan to a specific node: calculate translation to center the node while preserving current scale
+  - d3.zoomTransform(svg.node()!) to get current transform state for preserving scale during pan
+  - Derived stores (highlightedSha) work well for reactive cross-component communication
+
+---
+
+## 2026-01-31 - US-014
+- What was implemented:
+  - '관련 Git 명령어' section in ObjectDetailPanel showing relevant Git CLI commands
+  - commit objects: `git cat-file -p <sha>` command displayed
+  - tree objects: `git ls-tree <sha>` command displayed
+  - blob objects: both `git cat-file -p <sha>` and `git show <sha>` commands displayed
+  - Commands styled with code block (dark background #1e1e1e, monospace font, green #c3e88d text)
+  - Section separated with border-top from other content
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectDetailPanel.svelte (modified - added git commands section and styles)
+
+- **Learnings for future iterations:**
+  - Git commands section is always shown regardless of object type (uses conditional {#if} blocks for content)
+  - Use `word-break: break-all` for SHA values in code blocks to prevent overflow
+  - Svelte template can directly reference store values like `$selectedObject.id` in template strings
+
+---
+
+## 2026-01-31 - US-015
+- What was implemented:
+  - Copy button (clipboard icon 📋) added to all Git CLI command blocks in ObjectDetailPanel
+  - Copy button added to each commit item in CommitTimeline for 'git show <sha>'
+  - Click handler copies command to clipboard using navigator.clipboard.writeText()
+  - Visual feedback: icon changes from clipboard (📋) to checkmark (✓) on successful copy
+  - Auto-reset: checkmark reverts to clipboard icon after 1.5 seconds
+  - Event propagation stopped on copy button click in timeline to prevent commit selection
+
+- Files changed:
+  - git-object-visualizer/src/renderer/components/ObjectDetailPanel.svelte (modified - added copy functionality and styles)
+  - git-object-visualizer/src/renderer/components/CommitTimeline.svelte (modified - added git show copy button to commits)
+
+- **Learnings for future iterations:**
+  - Use `event.stopPropagation()` when button is inside a clickable parent to prevent parent's click handler
+  - Svelte 5 `{@const}` directive is useful for declaring variables inside template blocks
+  - navigator.clipboard.writeText() is the modern API for clipboard operations (requires secure context)
+  - Use $state for reactive local state that tracks copy status per-item
+  - Button styling: use flex container with border-radius on opposite corners for connected button appearance
 
 ---

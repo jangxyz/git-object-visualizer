@@ -5,6 +5,26 @@
 
   let unsubscribeRepo: (() => void) | null = null
 
+  // Copy to clipboard state - track which commit SHA was just copied
+  let copiedSha = $state<string | null>(null)
+
+  async function copyGitShow(sha: string, event: MouseEvent) {
+    // Prevent commit selection when clicking copy button
+    event.stopPropagation()
+
+    try {
+      const command = `git show ${sha}`
+      await navigator.clipboard.writeText(command)
+      copiedSha = sha
+      // Reset after 1.5 seconds
+      setTimeout(() => {
+        copiedSha = null
+      }, 1500)
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
+  }
+
   async function loadCommits(repoPath: string) {
     commitStore.setLoading(true)
     try {
@@ -68,7 +88,20 @@
           class:selected={$commitStore.selectedSha === commit.sha}
           onclick={() => handleCommitClick(commit.sha)}
         >
-          <span class="commit-sha">{formatSha(commit.sha)}</span>
+          <div class="commit-header">
+            <span class="commit-sha">{formatSha(commit.sha)}</span>
+            <button
+              class="copy-btn"
+              onclick={(e) => copyGitShow(commit.sha, e)}
+              title="git show {commit.sha} 복사"
+            >
+              {#if copiedSha === commit.sha}
+                <span class="copy-icon check">&#10003;</span>
+              {:else}
+                <span class="copy-icon">&#128203;</span>
+              {/if}
+            </button>
+          </div>
           <span class="commit-message">{truncateMessage(commit.message)}</span>
           <span class="commit-author">{commit.author}</span>
         </button>
@@ -154,11 +187,44 @@
     border-color: #4a9eff;
   }
 
+  .commit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+  }
+
   .commit-sha {
     font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
     font-size: 0.75rem;
     color: #4a9eff;
     font-weight: 600;
+  }
+
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 4px;
+    background: none;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .copy-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .copy-icon {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .copy-icon.check {
+    color: #50c878;
   }
 
   .commit-message {
