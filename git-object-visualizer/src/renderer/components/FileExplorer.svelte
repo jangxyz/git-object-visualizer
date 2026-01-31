@@ -3,6 +3,7 @@
   import { repository } from '../stores/repository'
   import { commitStore } from '../stores/commit'
   import { fileTreeStore, type FileTreeNode } from '../stores/fileTree'
+  import { selectedObjectStore } from '../stores/selectedObject'
   import { isIpcError } from '../utils/ipcError'
 
   let repoPath: string | null = null
@@ -121,6 +122,16 @@
     }
   }
 
+  function handleItemClick(node: FileTreeNode) {
+    // Select and highlight the node in the graph
+    selectedObjectStore.selectAndHighlight({
+      id: node.sha,
+      type: node.type,
+      label: node.sha.substring(0, 7),
+      name: node.name
+    })
+  }
+
   onMount(() => {
     // Initial load if we already have a selected commit
     if (repoPath && selectedSha) {
@@ -167,7 +178,12 @@
       class:folder={node.type === 'tree'}
       class:file={node.type === 'blob'}
       style="padding-left: {depth * 16 + 8}px"
-      onclick={() => node.type === 'tree' && handleToggleFolder(node)}
+      onclick={() => {
+        if (node.type === 'tree') {
+          handleToggleFolder(node)
+        }
+        handleItemClick(node)
+      }}
     >
       {#if node.type === 'tree'}
         <span class="expand-icon">{node.isExpanded ? '▼' : '▶'}</span>
@@ -286,7 +302,7 @@
   }
 
   .tree-item-btn.file {
-    cursor: default;
+    cursor: pointer;
   }
 
   .expand-icon {

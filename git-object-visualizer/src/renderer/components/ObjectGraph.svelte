@@ -3,7 +3,7 @@
   import * as d3 from 'd3'
   import { repository } from '../stores/repository'
   import { commitStore } from '../stores/commit'
-  import { selectedObjectStore } from '../stores/selectedObject'
+  import { selectedObjectStore, highlightedSha } from '../stores/selectedObject'
   import { isIpcError } from '../utils/ipcError'
 
   interface GraphNode extends d3.SimulationNodeDatum {
@@ -43,6 +43,11 @@
     } else {
       clearGraph()
     }
+  })
+
+  // Subscribe to highlighted SHA for file explorer -> graph connection
+  const unsubscribeHighlight = highlightedSha.subscribe((sha) => {
+    highlightNode(sha)
   })
 
   // Node colors by type
@@ -120,6 +125,56 @@
     svg.transition().duration(500).call(
       zoomBehavior.transform,
       d3.zoomIdentity.translate(translateX, translateY).scale(clampedScale)
+    )
+  }
+
+  function highlightNode(sha: string | null) {
+    if (!graphGroup) return
+
+    // Remove previous highlight
+    graphGroup.selectAll('.node circle')
+      .classed('highlighted', false)
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 2)
+
+    if (!sha) return
+
+    // Find the node with this SHA
+    const targetNode = currentNodes.find(n => n.id === sha)
+    if (!targetNode) return
+
+    // Add highlight to the matching node
+    graphGroup.selectAll<SVGGElement, GraphNode>('.node')
+      .filter(d => d.id === sha)
+      .select('circle')
+      .classed('highlighted', true)
+      .attr('stroke', '#ff4444')
+      .attr('stroke-width', 4)
+
+    // Pan to center on the highlighted node
+    panToNode(targetNode)
+  }
+
+  function panToNode(node: GraphNode) {
+    if (!svg || !zoomBehavior || !container) return
+
+    const width = container.clientWidth
+    const height = container.clientHeight
+
+    const nodeX = node.x ?? 0
+    const nodeY = node.y ?? 0
+
+    // Get current transform
+    const currentTransform = d3.zoomTransform(svg.node()!)
+    const currentScale = currentTransform.k
+
+    // Calculate translation to center the node
+    const translateX = width / 2 - nodeX * currentScale
+    const translateY = height / 2 - nodeY * currentScale
+
+    svg.transition().duration(500).call(
+      zoomBehavior.transform,
+      d3.zoomIdentity.translate(translateX, translateY).scale(currentScale)
     )
   }
 
@@ -278,6 +333,8 @@
     // Node click handler
     function handleNodeClick(event: MouseEvent, d: GraphNode) {
       event.stopPropagation()
+      // Clear previous highlight (from file explorer selection)
+      selectedObjectStore.clearHighlight()
       selectedObjectStore.select({
         id: d.id,
         type: d.type,
@@ -300,6 +357,7 @@
   onDestroy(() => {
     unsubscribeRepo()
     unsubscribeCommit()
+    unsubscribeHighlight()
     clearGraph()
   })
 </script>
@@ -399,6 +457,19 @@
 
   .object-graph :global(.node:hover circle) {
     filter: brightness(1.2);
+  }
+
+  .object-graph :global(.node circle.highlighted) {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      filter: drop-shadow(0 0 0 rgba(255, 68, 68, 0));
+    }
+    50% {
+      filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.8));
+    }
   }
 
   /* Zoom controls */

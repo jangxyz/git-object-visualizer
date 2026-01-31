@@ -13,11 +13,13 @@ export interface SelectedObjectInfo {
 interface SelectedObjectState {
   object: SelectedObjectInfo | null
   isOpen: boolean
+  highlightedSha: string | null
 }
 
 const initialState: SelectedObjectState = {
   object: null,
-  isOpen: false
+  isOpen: false,
+  highlightedSha: null
 }
 
 function createSelectedObjectStore() {
@@ -30,7 +32,21 @@ function createSelectedObjectStore() {
      * 객체를 선택하고 패널을 엽니다.
      */
     select(object: SelectedObjectInfo) {
-      set({ object, isOpen: true })
+      update(state => ({ ...state, object, isOpen: true }))
+    },
+
+    /**
+     * 객체를 선택하고 하이라이트합니다. 파일 탐색기에서 사용.
+     */
+    selectAndHighlight(object: SelectedObjectInfo) {
+      set({ object, isOpen: true, highlightedSha: object.id })
+    },
+
+    /**
+     * 하이라이트를 제거합니다.
+     */
+    clearHighlight() {
+      update(state => ({ ...state, highlightedSha: null }))
     },
 
     /**
@@ -65,4 +81,12 @@ export const isDetailPanelOpen = derived(
 export const selectedObject = derived(
   selectedObjectStore,
   $state => $state.object
+)
+
+/**
+ * 하이라이트된 노드 SHA
+ */
+export const highlightedSha = derived(
+  selectedObjectStore,
+  $state => $state.highlightedSha
 )
