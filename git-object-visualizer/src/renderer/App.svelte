@@ -5,7 +5,9 @@
     type RecentRepository,
   } from "./stores/recentRepositories";
   import { theme } from "./stores/theme";
+  import { toastStore } from "./stores/toast";
   import MainLayout from "./components/MainLayout.svelte";
+  import ToastContainer from "./components/ToastContainer.svelte";
 
   let isLoading = false;
   let loadingRepoPath: string | null = null;
@@ -23,12 +25,16 @@
         recentRepositories.add(path, name);
       } else {
         // Path exists but is not a valid git repository
-        repository.setError("유효한 Git 저장소가 아닙니다");
+        const errorMsg = "유효한 Git 저장소가 아닙니다";
+        repository.setError(errorMsg);
+        toastStore.error(errorMsg);
         recentRepositories.remove(path);
       }
     } catch (error) {
       // Path doesn't exist or other error
-      repository.setError("저장소를 찾을 수 없습니다. 목록에서 제거됩니다.");
+      const errorMsg = "저장소를 찾을 수 없습니다. 목록에서 제거됩니다.";
+      repository.setError(errorMsg);
+      toastStore.error(errorMsg);
       recentRepositories.remove(path);
     } finally {
       isLoading = false;
@@ -57,10 +63,14 @@
         repository.setRepository(selectedPath, repoName);
         recentRepositories.add(selectedPath, repoName);
       } else {
-        repository.setError("유효한 Git 저장소가 아닙니다");
+        const errorMsg = "유효한 Git 저장소가 아닙니다";
+        repository.setError(errorMsg);
+        toastStore.error(errorMsg);
       }
     } catch (error) {
-      repository.setError("저장소를 여는 중 오류가 발생했습니다");
+      const errorMsg = "저장소를 여는 중 오류가 발생했습니다";
+      repository.setError(errorMsg);
+      toastStore.error(errorMsg);
     } finally {
       isLoading = false;
     }
@@ -126,6 +136,7 @@
     {/if}
   </div>
 {/if}
+  <ToastContainer />
 </div>
 
 <style>

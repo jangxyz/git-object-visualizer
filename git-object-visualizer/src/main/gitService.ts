@@ -1,9 +1,53 @@
 import { existsSync, statSync } from 'fs'
 import { join } from 'path'
-import { execFile } from 'child_process'
-import { promisify } from 'util'
+import { execFile, type ChildProcess } from 'child_process'
 
-const execFileAsync = promisify(execFile)
+// Timeout for git operations (10 seconds)
+const GIT_TIMEOUT = 10000
+
+/**
+ * Custom error for timeout
+ */
+export class GitTimeoutError extends Error {
+  constructor(operation: string) {
+    super(`저장소가 너무 큽니다. ${operation} 작업이 시간 초과되었습니다.`)
+    this.name = 'GitTimeoutError'
+  }
+}
+
+/**
+ * Execute git command with timeout
+ */
+async function execGitWithTimeout(
+  args: string[],
+  options: { cwd: string; timeout?: number }
+): Promise<{ stdout: string; stderr: string }> {
+  const timeout = options.timeout ?? GIT_TIMEOUT
+
+  return new Promise((resolve, reject) => {
+    let childProcess: ChildProcess | null = null
+    let killed = false
+
+    const timer = setTimeout(() => {
+      killed = true
+      if (childProcess) {
+        childProcess.kill('SIGTERM')
+      }
+      reject(new GitTimeoutError(args.join(' ')))
+    }, timeout)
+
+    childProcess = execFile('git', args, { cwd: options.cwd }, (error, stdout, stderr) => {
+      clearTimeout(timer)
+      if (killed) return
+
+      if (error) {
+        reject(error)
+      } else {
+        resolve({ stdout, stderr })
+      }
+    })
+  })
+}
 
 /**
  * 커밋 정보 타입 (히스토리용)
@@ -68,7 +112,7 @@ export async function getCommitHistory(repoPath: string, limit: number = 50): Pr
   const format = '%H%n%s%n%an%n%aI'
   const separator = '---COMMIT_SEPARATOR---'
 
-  const { stdout } = await execFileAsync('git', [
+  const { stdout } = await execGitWithTimeout([
     'log',
     `--format=${format}${separator}`,
     `-n${limit}`
@@ -100,7 +144,7 @@ export async function getCommitHistory(repoPath: string, limit: number = 50): Pr
  */
 export async function getCommit(repoPath: string, sha: string): Promise<CommitObject> {
   // git cat-file -p <sha> 로 커밋 내용을 가져옴
-  const { stdout } = await execFileAsync('git', [
+  const { stdout } = await execGitWithTimeout([
     'cat-file',
     '-p',
     sha
@@ -167,7 +211,7 @@ export async function getCommit(repoPath: string, sha: string): Promise<CommitOb
  */
 export async function getTree(repoPath: string, sha: string): Promise<TreeEntry[]> {
   // git ls-tree <sha> 로 트리 내용을 가져옴
-  const { stdout } = await execFileAsync('git', [
+  const { stdout } = await execGitWithTimeout([
     'ls-tree',
     sha
   ], { cwd: repoPath })
@@ -199,7 +243,7 @@ export async function getTree(repoPath: string, sha: string): Promise<TreeEntry[
  */
 export async function getBlob(repoPath: string, sha: string): Promise<string> {
   // git cat-file -p <sha> 로 blob 내용을 가져옴
-  const { stdout } = await execFileAsync('git', [
+  const { stdout } = await execGitWithTimeout([
     'cat-file',
     '-p',
     sha

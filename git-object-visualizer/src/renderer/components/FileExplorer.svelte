@@ -4,6 +4,7 @@
   import { commitStore } from '../stores/commit'
   import { fileTreeStore, type FileTreeNode } from '../stores/fileTree'
   import { selectedObjectStore } from '../stores/selectedObject'
+  import { toastStore } from '../stores/toast'
   import { isIpcError } from '../utils/ipcError'
 
   let repoPath: string | null = null
@@ -43,6 +44,7 @@
       const commit = await window.api.git.getCommit(path, commitSha)
       if (isIpcError(commit)) {
         fileTreeStore.setError(commit.message)
+        toastStore.error(commit.message)
         return
       }
 
@@ -50,6 +52,7 @@
       const treeEntries = await window.api.git.getTree(path, commit.tree)
       if (isIpcError(treeEntries)) {
         fileTreeStore.setError(treeEntries.message)
+        toastStore.error(treeEntries.message)
         return
       }
 
@@ -74,7 +77,9 @@
       fileTreeStore.setRootNodes(nodes, commit.tree)
       fileTreeStore.setLoading(false)
     } catch (err) {
-      fileTreeStore.setError(err instanceof Error ? err.message : 'Failed to load file tree')
+      const errorMsg = err instanceof Error ? err.message : '파일 트리를 불러오는데 실패했습니다'
+      fileTreeStore.setError(errorMsg)
+      toastStore.error(errorMsg)
     }
   }
 
@@ -95,6 +100,7 @@
       const treeEntries = await window.api.git.getTree(repoPath, node.sha)
       if (isIpcError(treeEntries)) {
         fileTreeStore.setNodeLoading(node.sha, false)
+        toastStore.error(treeEntries.message)
         return
       }
 

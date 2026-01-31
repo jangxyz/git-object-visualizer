@@ -1,7 +1,9 @@
 <script lang="ts">
   import { commitStore } from '../stores/commit'
   import { repository } from '../stores/repository'
+  import { toastStore } from '../stores/toast'
   import { onMount, onDestroy } from 'svelte'
+  import { isIpcError } from '../utils/ipcError'
 
   let unsubscribeRepo: (() => void) | null = null
 
@@ -56,14 +58,24 @@
   async function loadCommits(repoPath: string) {
     commitStore.setLoading(true)
     try {
-      const commits = await window.api.git.getCommitHistory(repoPath)
-      commitStore.setCommits(commits)
+      const result = await window.api.git.getCommitHistory(repoPath)
+
+      if (isIpcError(result)) {
+        const errorMsg = result.message
+        commitStore.setError(errorMsg)
+        toastStore.error(errorMsg)
+        return
+      }
+
+      commitStore.setCommits(result)
       // Auto-select HEAD commit (first commit in list)
-      if (commits.length > 0) {
-        commitStore.selectCommit(commits[0].sha)
+      if (result.length > 0) {
+        commitStore.selectCommit(result[0].sha)
       }
     } catch (error) {
-      commitStore.setError('커밋 히스토리를 불러오는 중 오류가 발생했습니다')
+      const errorMsg = error instanceof Error ? error.message : '커밋 히스토리를 불러오는 중 오류가 발생했습니다'
+      commitStore.setError(errorMsg)
+      toastStore.error(errorMsg)
     }
   }
 
@@ -110,7 +122,10 @@
   <h2 class="panel-title">커밋 타임라인</h2>
 
   {#if $commitStore.isLoading}
-    <div class="loading">커밋 히스토리 로딩 중...</div>
+    <div class="loading">
+      <span class="spinner"></span>
+      <span>커밋 히스토리 로딩 중...</span>
+    </div>
   {:else if $commitStore.error}
     <div class="error">{$commitStore.error}</div>
   {:else if $commitStore.commits.length === 0}
@@ -297,10 +312,24 @@
     flex: 1;
     font-size: 0.875rem;
     color: var(--text-muted);
+    gap: 0.5rem;
   }
 
   .error {
     color: var(--error-color);
+  }
+
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--spinner-track);
+    border-top-color: var(--spinner-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
   /* Copy button wrapper for tooltip positioning */

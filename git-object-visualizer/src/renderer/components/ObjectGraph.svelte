@@ -5,6 +5,7 @@
   import { commitStore } from '../stores/commit'
   import { selectedObjectStore, highlightedSha } from '../stores/selectedObject'
   import { theme } from '../stores/theme'
+  import { toastStore } from '../stores/toast'
   import { isIpcError } from '../utils/ipcError'
 
   interface GraphNode extends d3.SimulationNodeDatum {
@@ -261,13 +262,16 @@
 
       if (isIpcError(result)) {
         error = result.message
+        toastStore.error(result.message)
         isLoading = false
         return
       }
 
       renderGraph(result.nodes as GraphNode[], result.edges)
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load object graph'
+      const errorMsg = err instanceof Error ? err.message : '객체 그래프를 불러오는데 실패했습니다'
+      error = errorMsg
+      toastStore.error(errorMsg)
     } finally {
       isLoading = false
     }
@@ -444,7 +448,7 @@
   {#if isLoading}
     <div class="loading">
       <span class="spinner"></span>
-      <span>객체 그래프 로딩 중...</span>
+      <span>객체 그래프 생성 중...</span>
     </div>
   {:else if error}
     <div class="error">

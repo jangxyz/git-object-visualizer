@@ -2,6 +2,7 @@
   import { onDestroy } from 'svelte'
   import { repository } from '../stores/repository'
   import { selectedObjectStore, isDetailPanelOpen, selectedObject, type SelectedObjectInfo } from '../stores/selectedObject'
+  import { toastStore } from '../stores/toast'
   import { isIpcError } from '../utils/ipcError'
 
   // Object type icons and colors
@@ -105,6 +106,7 @@
           const result = await window.api.git.getCommit(repoPath, obj.id)
           if (isIpcError(result)) {
             error = result.message
+            toastStore.error(result.message)
           } else {
             commitData = result
           }
@@ -114,6 +116,7 @@
           const result = await window.api.git.getTree(repoPath, obj.id)
           if (isIpcError(result)) {
             error = result.message
+            toastStore.error(result.message)
           } else {
             treeData = result
           }
@@ -123,6 +126,7 @@
           const result = await window.api.git.getBlob(repoPath, obj.id)
           if (isIpcError(result)) {
             error = result.message
+            toastStore.error(result.message)
           } else {
             blobData = result
           }
@@ -130,7 +134,9 @@
         }
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load object data'
+      const errorMsg = err instanceof Error ? err.message : '객체 데이터를 불러오는데 실패했습니다'
+      error = errorMsg
+      toastStore.error(errorMsg)
     } finally {
       isLoading = false
     }
