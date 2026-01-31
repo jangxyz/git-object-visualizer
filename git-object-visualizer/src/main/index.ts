@@ -33,41 +33,94 @@ function createWindow(): void {
   }
 }
 
+/**
+ * IPC 에러 로깅 및 처리 헬퍼 함수
+ * @param handlerName - IPC 핸들러 이름
+ * @param params - 핸들러에 전달된 파라미터
+ * @param error - 발생한 에러
+ * @returns 에러 정보를 담은 객체
+ */
+function logAndFormatError(handlerName: string, params: Record<string, unknown>, error: unknown): { error: true; message: string; handlerName: string } {
+  const errorMessage = error instanceof Error ? error.message : String(error)
+  const errorStack = error instanceof Error ? error.stack : undefined
+
+  console.error(`[IPC Error] ${handlerName}`)
+  console.error(`  Parameters: ${JSON.stringify(params)}`)
+  console.error(`  Message: ${errorMessage}`)
+  if (errorStack) {
+    console.error(`  Stack: ${errorStack}`)
+  }
+
+  return {
+    error: true,
+    message: errorMessage,
+    handlerName
+  }
+}
+
 // IPC handlers for git service
-ipcMain.handle('git:isValidRepository', (_event, path: string) => {
-  return isValidRepository(path)
+ipcMain.handle('git:isValidRepository', async (_event, path: string) => {
+  try {
+    return isValidRepository(path)
+  } catch (error) {
+    return logAndFormatError('git:isValidRepository', { path }, error)
+  }
 })
 
-ipcMain.handle('git:getCommitHistory', (_event, repoPath: string, limit?: number) => {
-  return getCommitHistory(repoPath, limit)
+ipcMain.handle('git:getCommitHistory', async (_event, repoPath: string, limit?: number) => {
+  try {
+    return await getCommitHistory(repoPath, limit)
+  } catch (error) {
+    return logAndFormatError('git:getCommitHistory', { repoPath, limit }, error)
+  }
 })
 
-ipcMain.handle('git:getCommit', (_event, repoPath: string, sha: string) => {
-  return getCommit(repoPath, sha)
+ipcMain.handle('git:getCommit', async (_event, repoPath: string, sha: string) => {
+  try {
+    return await getCommit(repoPath, sha)
+  } catch (error) {
+    return logAndFormatError('git:getCommit', { repoPath, sha }, error)
+  }
 })
 
-ipcMain.handle('git:getTree', (_event, repoPath: string, sha: string) => {
-  return getTree(repoPath, sha)
+ipcMain.handle('git:getTree', async (_event, repoPath: string, sha: string) => {
+  try {
+    return await getTree(repoPath, sha)
+  } catch (error) {
+    return logAndFormatError('git:getTree', { repoPath, sha }, error)
+  }
 })
 
-ipcMain.handle('git:getBlob', (_event, repoPath: string, sha: string) => {
-  return getBlob(repoPath, sha)
+ipcMain.handle('git:getBlob', async (_event, repoPath: string, sha: string) => {
+  try {
+    return await getBlob(repoPath, sha)
+  } catch (error) {
+    return logAndFormatError('git:getBlob', { repoPath, sha }, error)
+  }
 })
 
-ipcMain.handle('git:buildObjectGraph', (_event, repoPath: string, commitSha: string, maxDepth?: number) => {
-  return buildObjectGraph(repoPath, commitSha, maxDepth)
+ipcMain.handle('git:buildObjectGraph', async (_event, repoPath: string, commitSha: string, maxDepth?: number) => {
+  try {
+    return await buildObjectGraph(repoPath, commitSha, maxDepth)
+  } catch (error) {
+    return logAndFormatError('git:buildObjectGraph', { repoPath, commitSha, maxDepth }, error)
+  }
 })
 
 // Dialog handler for opening folder
 ipcMain.handle('dialog:openFolder', async () => {
-  const result = await dialog.showOpenDialog({
-    properties: ['openDirectory'],
-    title: '저장소 폴더 선택'
-  })
-  if (result.canceled || result.filePaths.length === 0) {
-    return null
+  try {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: '저장소 폴더 선택'
+    })
+    if (result.canceled || result.filePaths.length === 0) {
+      return null
+    }
+    return result.filePaths[0]
+  } catch (error) {
+    return logAndFormatError('dialog:openFolder', {}, error)
   }
-  return result.filePaths[0]
 })
 
 app.whenReady().then(() => {
