@@ -212,6 +212,27 @@
           </div>
         </div>
       {/if}
+
+      <!-- Git CLI Commands Section -->
+      <div class="git-commands-section">
+        <h4>관련 Git 명령어</h4>
+        {#if $selectedObject.type === 'commit'}
+          <div class="command-block">
+            <code>git cat-file -p {$selectedObject.id}</code>
+          </div>
+        {:else if $selectedObject.type === 'tree'}
+          <div class="command-block">
+            <code>git ls-tree {$selectedObject.id}</code>
+          </div>
+        {:else if $selectedObject.type === 'blob'}
+          <div class="command-block">
+            <code>git cat-file -p {$selectedObject.id}</code>
+          </div>
+          <div class="command-block">
+            <code>git show {$selectedObject.id}</code>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 {/if}
@@ -440,5 +461,40 @@
     margin: 0;
     max-height: 400px;
     overflow-y: auto;
+  }
+
+  /* Git CLI Commands Section */
+  .git-commands-section {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #3c3c3c;
+  }
+
+  .git-commands-section h4 {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .command-block {
+    margin-bottom: 8px;
+  }
+
+  .command-block:last-child {
+    margin-bottom: 0;
+  }
+
+  .command-block code {
+    display: block;
+    font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+    font-size: 12px;
+    color: #c3e88d;
+    background-color: #1e1e1e;
+    padding: 10px 12px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    word-break: break-all;
   }
 </style>
