@@ -1,0 +1,41 @@
+## Codebase Patterns
+- Use electron-vite for building Electron + Svelte apps
+- TypeScript configs: tsconfig.node.json for main/preload, tsconfig.web.json for renderer
+- Main process code in src/main/, preload in src/preload/, renderer in src/renderer/
+- Run `npm run typecheck` to verify all TypeScript code
+- Svelte 5 uses `mount()` instead of `new App()` pattern
+
+---
+
+## 2026-01-31 - US-001
+- What was implemented:
+  - Complete Electron + Svelte + TypeScript project setup using electron-vite
+  - Main process entry point (src/main/index.ts) with BrowserWindow
+  - Preload script (src/preload/index.ts) with contextBridge setup
+  - Renderer with Svelte App (src/renderer/App.svelte, main.ts, index.html)
+  - TypeScript configuration for node and web environments
+  - Package.json with dev, build, and typecheck scripts
+
+- Files changed:
+  - git-object-visualizer/.gitignore
+  - git-object-visualizer/electron.vite.config.ts
+  - git-object-visualizer/package.json
+  - git-object-visualizer/package-lock.json
+  - git-object-visualizer/src/main/index.ts
+  - git-object-visualizer/src/preload/index.ts
+  - git-object-visualizer/src/renderer/App.svelte
+  - git-object-visualizer/src/renderer/index.html
+  - git-object-visualizer/src/renderer/main.ts
+  - git-object-visualizer/svelte.config.js
+  - git-object-visualizer/tsconfig.json
+  - git-object-visualizer/tsconfig.node.json
+  - git-object-visualizer/tsconfig.web.json
+
+- **Learnings for future iterations:**
+  - @typescript-eslint/types needs to be installed for svelte-check to work
+  - package.json needs "type": "module" to avoid ES module warning
+  - Svelte 5 uses `import { mount } from 'svelte'` and `mount(App, { target })` pattern
+  - electron-vite automatically sets up ELECTRON_RENDERER_URL for dev mode
+  - Security settings: contextIsolation: true, nodeIntegration: false already set in main process
+
+---
