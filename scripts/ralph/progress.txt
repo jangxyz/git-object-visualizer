@@ -7,6 +7,9 @@ Started: Sat Jan 31 09:28:42 KST 2026
 - 테마 변경은 `theme` store를 통해 관리 (stores/theme.ts)
 - D3.js 그래프 색상은 `getComputedStyle()`로 CSS 변수를 읽어서 적용
 - 컴포넌트 스타일은 하드코딩 대신 `var(--variable-name)` 형식 사용
+- 토스트 알림은 `toastStore`를 통해 관리 (stores/toast.ts)
+- Git 명령어 실행에는 타임아웃 적용 (10초, gitService.ts의 execGitWithTimeout)
+- 에러 처리 시 inline 에러와 토스트 알림 둘 다 표시하는 것이 좋음
 ---
 
 ## 2026-01-31 11:13 - US-019
@@ -25,4 +28,27 @@ Started: Sat Jan 31 09:28:42 KST 2026
   - D3.js로 생성된 SVG 요소는 CSS 변수를 직접 사용할 수 없어 `getComputedStyle()`로 런타임에 읽어야 함
   - 테마 변경 시 그래프 색상 업데이트를 위해 theme store 구독 필요
   - Svelte 5에서는 `$state()` 없이 선언된 변수는 반응형이 아님 (기존 경고)
+---
+
+## 2026-01-31 11:20 - US-020
+- What was implemented:
+  - 에러 처리 및 로딩 상태 표시 기능
+  - Toast 알림 시스템 (stores/toast.ts, ToastContainer.svelte)
+  - Git 명령어 실행 시 타임아웃 처리 (10초)
+  - 커밋 타임라인, 객체 그래프, 파일 탐색기에 로딩 스피너 추가
+  - 에러 발생 시 토스트 알림으로 사용자에게 표시
+- Files changed:
+  - stores/toast.ts (신규) - 토스트 알림 store
+  - components/ToastContainer.svelte (신규) - 토스트 UI 컴포넌트
+  - gitService.ts - execGitWithTimeout 함수 및 GitTimeoutError 클래스 추가
+  - App.svelte - ToastContainer 추가, 에러 시 토스트 표시
+  - CommitTimeline.svelte - 로딩 스피너 및 에러 토스트
+  - ObjectGraph.svelte - '객체 그래프 생성 중...' 메시지 및 에러 토스트
+  - FileExplorer.svelte - 에러 토스트 추가
+  - ObjectDetailPanel.svelte - 에러 토스트 추가
+- **Learnings for future iterations:**
+  - child_process.execFile에 타임아웃을 적용하려면 직접 Promise로 래핑해야 함
+  - 타임아웃 시 SIGTERM으로 프로세스 종료 필요
+  - 에러 메시지는 한국어로 사용자 친화적으로 표시
+  - Toast 컴포넌트는 fixed position으로 앱 전체 위에 표시 (z-index: 9999)
 ---

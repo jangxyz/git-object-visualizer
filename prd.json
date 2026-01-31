@@ -346,8 +346,8 @@
         "npm run check 통과 (typecheck + build)"
       ],
       "priority": 20,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "✅ 확인 가능: 로딩 스피너, 토스트 에러 알림, 타임아웃 처리 (10초)"
     }
   ]
 }
