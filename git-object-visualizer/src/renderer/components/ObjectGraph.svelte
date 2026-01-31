@@ -20,6 +20,9 @@
   let container: HTMLDivElement
   let svg: d3.Selection<SVGSVGElement, unknown, null, undefined> | null = null
   let simulation: d3.Simulation<GraphNode, GraphEdge> | null = null
+  let zoomBehavior: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null
+  let graphGroup: d3.Selection<SVGGElement, unknown, null, undefined> | null = null
+  let currentNodes: GraphNode[] = []
 
   let isLoading = $state(false)
   let error = $state<string | null>(null)
@@ -56,6 +59,67 @@
       simulation.stop()
       simulation = null
     }
+    zoomBehavior = null
+    graphGroup = null
+    currentNodes = []
+  }
+
+  // Zoom control functions
+  function handleZoomIn() {
+    if (!svg || !zoomBehavior) return
+    svg.transition().duration(300).call(zoomBehavior.scaleBy, 1.3)
+  }
+
+  function handleZoomOut() {
+    if (!svg || !zoomBehavior) return
+    svg.transition().duration(300).call(zoomBehavior.scaleBy, 0.7)
+  }
+
+  function handleFitToScreen() {
+    if (!svg || !zoomBehavior || !container || currentNodes.length === 0) return
+
+    const width = container.clientWidth
+    const height = container.clientHeight
+
+    // Calculate bounds of all nodes
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    for (const node of currentNodes) {
+      const x = node.x ?? 0
+      const y = node.y ?? 0
+      if (x < minX) minX = x
+      if (x > maxX) maxX = x
+      if (y < minY) minY = y
+      if (y > maxY) maxY = y
+    }
+
+    // Add padding
+    const padding = 50
+    minX -= padding
+    maxX += padding
+    minY -= padding
+    maxY += padding
+
+    const graphWidth = maxX - minX
+    const graphHeight = maxY - minY
+
+    // Calculate scale to fit
+    const scale = Math.min(
+      width / graphWidth,
+      height / graphHeight,
+      3 // max zoom
+    )
+    const clampedScale = Math.max(0.1, Math.min(scale, 3))
+
+    // Calculate translation to center
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const translateX = width / 2 - centerX * clampedScale
+    const translateY = height / 2 - centerY * clampedScale
+
+    svg.transition().duration(500).call(
+      zoomBehavior.transform,
+      d3.zoomIdentity.translate(translateX, translateY).scale(clampedScale)
+    )
   }
 
   async function loadGraph(path: string, sha: string) {
@@ -83,6 +147,7 @@
     if (!container) return
 
     clearGraph()
+    currentNodes = nodes
 
     const width = container.clientWidth
     const height = container.clientHeight
@@ -107,8 +172,22 @@
       .attr('d', 'M 0,-5 L 10,0 L 0,5')
       .attr('fill', '#666')
 
+    // Create zoom behavior with constraints
+    zoomBehavior = d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.1, 3]) // 0.1x to 3x zoom
+      .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+        if (graphGroup) {
+          graphGroup.attr('transform', event.transform.toString())
+        }
+      })
+
+    // Apply zoom behavior to SVG
+    svg.call(zoomBehavior)
+      .on('dblclick.zoom', null) // Disable double-click zoom
+
     // Create container group for zoom/pan
     const g = svg.append('g')
+    graphGroup = g
 
     // Create simulation
     simulation = d3.forceSimulation<GraphNode>(nodes)
@@ -226,6 +305,14 @@
       <p>커밋을 선택하면 객체 그래프가 표시됩니다</p>
     </div>
   {/if}
+
+  {#if selectedSha && !isLoading && !error}
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick={handleZoomIn} title="확대">+</button>
+      <button class="zoom-btn" onclick={handleZoomOut} title="축소">-</button>
+      <button class="zoom-btn fit-btn" onclick={handleFitToScreen} title="맞춤">맞춤</button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -297,5 +384,48 @@
 
   .object-graph :global(.node:hover circle) {
     filter: brightness(1.2);
+  }
+
+  /* Zoom controls */
+  .zoom-controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 10;
+  }
+
+  .zoom-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #2d2d2d;
+    color: #ccc;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s, border-color 0.2s;
+  }
+
+  .zoom-btn:hover {
+    background-color: #3d3d3d;
+    border-color: #555;
+  }
+
+  .zoom-btn:active {
+    background-color: #4d4d4d;
+  }
+
+  .fit-btn {
+    width: auto;
+    padding: 0 10px;
+    font-size: 12px;
+    font-weight: normal;
   }
 </style>
