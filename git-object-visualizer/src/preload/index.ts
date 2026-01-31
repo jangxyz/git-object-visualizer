@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
+// Commit type for renderer
+interface Commit {
+  sha: string
+  message: string
+  author: string
+  date: string
+}
+
 // Git API to be exposed to renderer
 const gitApi = {
   /**
@@ -9,6 +17,16 @@ const gitApi = {
    */
   isValidRepository: (path: string): Promise<boolean> => {
     return ipcRenderer.invoke('git:isValidRepository', path)
+  },
+
+  /**
+   * 저장소의 커밋 히스토리를 조회합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param limit - 조회할 커밋 수 (기본값: 50)
+   * @returns Promise<Commit[]> - 커밋 목록
+   */
+  getCommitHistory: (repoPath: string, limit?: number): Promise<Commit[]> => {
+    return ipcRenderer.invoke('git:getCommitHistory', repoPath, limit)
   }
 }
 

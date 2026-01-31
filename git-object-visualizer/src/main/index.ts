@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { isValidRepository } from './gitService'
+import { isValidRepository, getCommitHistory } from './gitService'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -36,6 +36,10 @@ function createWindow(): void {
 // IPC handlers for git service
 ipcMain.handle('git:isValidRepository', (_event, path: string) => {
   return isValidRepository(path)
+})
+
+ipcMain.handle('git:getCommitHistory', (_event, repoPath: string, limit?: number) => {
+  return getCommitHistory(repoPath, limit)
 })
 
 // Dialog handler for opening folder

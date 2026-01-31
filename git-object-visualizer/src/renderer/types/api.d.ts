@@ -1,4 +1,14 @@
 /**
+ * 커밋 정보 타입
+ */
+interface Commit {
+  sha: string
+  message: string
+  author: string
+  date: string
+}
+
+/**
  * Git 서비스 API 타입
  */
 interface GitApi {
@@ -8,6 +18,14 @@ interface GitApi {
    * @returns Promise<boolean> - Git 저장소이면 true, 아니면 false
    */
   isValidRepository(path: string): Promise<boolean>
+
+  /**
+   * 저장소의 커밋 히스토리를 조회합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param limit - 조회할 커밋 수 (기본값: 50)
+   * @returns Promise<Commit[]> - 커밋 목록
+   */
+  getCommitHistory(repoPath: string, limit?: number): Promise<Commit[]>
 }
 
 /**
