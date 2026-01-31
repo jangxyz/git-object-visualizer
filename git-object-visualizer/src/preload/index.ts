@@ -28,6 +28,26 @@ interface TreeEntry {
   name: string
 }
 
+// GraphNode type for renderer
+interface GraphNode {
+  id: string
+  type: 'commit' | 'tree' | 'blob'
+  label: string
+  name?: string
+}
+
+// GraphEdge type for renderer
+interface GraphEdge {
+  source: string
+  target: string
+}
+
+// ObjectGraph type for renderer
+interface ObjectGraph {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
 // Git API to be exposed to renderer
 const gitApi = {
   /**
@@ -77,6 +97,17 @@ const gitApi = {
    */
   getBlob: (repoPath: string, sha: string): Promise<string> => {
     return ipcRenderer.invoke('git:getBlob', repoPath, sha)
+  },
+
+  /**
+   * 선택된 커밋의 객체들을 그래프 데이터 구조로 변환합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param commitSha - 커밋 SHA
+   * @param maxDepth - 탐색 깊이 제한 (기본값: 3)
+   * @returns Promise<ObjectGraph> - 객체 그래프 (nodes와 edges)
+   */
+  buildObjectGraph: (repoPath: string, commitSha: string, maxDepth?: number): Promise<ObjectGraph> => {
+    return ipcRenderer.invoke('git:buildObjectGraph', repoPath, commitSha, maxDepth)
   }
 }
 

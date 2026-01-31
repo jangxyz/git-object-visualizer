@@ -33,6 +33,32 @@ interface TreeEntry {
 }
 
 /**
+ * 그래프 노드 타입
+ */
+interface GraphNode {
+  id: string
+  type: 'commit' | 'tree' | 'blob'
+  label: string
+  name?: string
+}
+
+/**
+ * 그래프 엣지 타입
+ */
+interface GraphEdge {
+  source: string
+  target: string
+}
+
+/**
+ * 객체 그래프 타입
+ */
+interface ObjectGraph {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+/**
  * Git 서비스 API 타입
  */
 interface GitApi {
@@ -74,6 +100,15 @@ interface GitApi {
    * @returns Promise<string> - Blob 내용
    */
   getBlob(repoPath: string, sha: string): Promise<string>
+
+  /**
+   * 선택된 커밋의 객체들을 그래프 데이터 구조로 변환합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param commitSha - 커밋 SHA
+   * @param maxDepth - 탐색 깊이 제한 (기본값: 3)
+   * @returns Promise<ObjectGraph> - 객체 그래프 (nodes와 edges)
+   */
+  buildObjectGraph(repoPath: string, commitSha: string, maxDepth?: number): Promise<ObjectGraph>
 }
 
 /**

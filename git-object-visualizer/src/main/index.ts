@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { isValidRepository, getCommitHistory, getCommit, getTree, getBlob } from './gitService'
+import { isValidRepository, getCommitHistory, getCommit, getTree, getBlob, buildObjectGraph } from './gitService'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -52,6 +52,10 @@ ipcMain.handle('git:getTree', (_event, repoPath: string, sha: string) => {
 
 ipcMain.handle('git:getBlob', (_event, repoPath: string, sha: string) => {
   return getBlob(repoPath, sha)
+})
+
+ipcMain.handle('git:buildObjectGraph', (_event, repoPath: string, commitSha: string, maxDepth?: number) => {
+  return buildObjectGraph(repoPath, commitSha, maxDepth)
 })
 
 // Dialog handler for opening folder

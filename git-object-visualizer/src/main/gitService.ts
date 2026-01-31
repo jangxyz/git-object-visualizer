@@ -207,3 +207,111 @@ export async function getBlob(repoPath: string, sha: string): Promise<string> {
 
   return stdout
 }
+
+/**
+ * 그래프 노드 타입
+ */
+export interface GraphNode {
+  id: string
+  type: 'commit' | 'tree' | 'blob'
+  label: string
+  name?: string
+}
+
+/**
+ * 그래프 엣지 타입
+ */
+export interface GraphEdge {
+  source: string
+  target: string
+}
+
+/**
+ * 객체 그래프 타입
+ */
+export interface ObjectGraph {
+  nodes: GraphNode[]
+  edges: GraphEdge[]
+}
+
+/**
+ * 선택된 커밋의 객체들을 그래프 데이터 구조로 변환합니다.
+ * @param repoPath - Git 저장소 경로
+ * @param commitSha - 커밋 SHA
+ * @param maxDepth - 탐색 깊이 제한 (기본값: 3)
+ * @returns 객체 그래프 (nodes와 edges)
+ */
+export async function buildObjectGraph(
+  repoPath: string,
+  commitSha: string,
+  maxDepth: number = 3
+): Promise<ObjectGraph> {
+  const nodes: GraphNode[] = []
+  const edges: GraphEdge[] = []
+  const visited = new Set<string>()
+
+  // 커밋 노드 추가
+  const commitObj = await getCommit(repoPath, commitSha)
+  nodes.push({
+    id: commitSha,
+    type: 'commit',
+    label: commitSha.substring(0, 7)
+  })
+  visited.add(commitSha)
+
+  // 트리 탐색 함수
+  async function traverseTree(
+    treeSha: string,
+    depth: number,
+    parentSha: string,
+    name?: string
+  ): Promise<void> {
+    if (depth > maxDepth || visited.has(treeSha)) {
+      // 이미 방문한 노드라도 엣지는 추가
+      if (visited.has(treeSha)) {
+        edges.push({ source: parentSha, target: treeSha })
+      }
+      return
+    }
+
+    visited.add(treeSha)
+
+    // 트리 노드 추가
+    nodes.push({
+      id: treeSha,
+      type: 'tree',
+      label: treeSha.substring(0, 7),
+      name
+    })
+    edges.push({ source: parentSha, target: treeSha })
+
+    // depth가 maxDepth에 도달하면 더 이상 자식 탐색 안 함
+    if (depth === maxDepth) {
+      return
+    }
+
+    // 트리 항목 탐색
+    const entries = await getTree(repoPath, treeSha)
+    for (const entry of entries) {
+      if (entry.type === 'tree') {
+        await traverseTree(entry.sha, depth + 1, treeSha, entry.name)
+      } else if (entry.type === 'blob') {
+        if (!visited.has(entry.sha)) {
+          visited.add(entry.sha)
+          nodes.push({
+            id: entry.sha,
+            type: 'blob',
+            label: entry.sha.substring(0, 7),
+            name: entry.name
+          })
+        }
+        edges.push({ source: treeSha, target: entry.sha })
+      }
+    }
+  }
+
+  // 커밋의 트리부터 탐색 시작
+  await traverseTree(commitObj.tree, 1, commitSha)
+
+  return { nodes, edges }
+}
