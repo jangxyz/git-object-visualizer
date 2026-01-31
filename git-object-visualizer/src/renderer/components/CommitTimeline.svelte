@@ -118,10 +118,13 @@
   {:else}
     <div class="commit-list">
       {#each $commitStore.commits as commit}
-        <button
+        <div
           class="commit-item"
           class:selected={$commitStore.selectedSha === commit.sha}
           onclick={() => handleCommitClick(commit.sha)}
+          onkeydown={(e) => e.key === 'Enter' && handleCommitClick(commit.sha)}
+          role="button"
+          tabindex="0"
         >
           <div class="commit-header">
             <span class="commit-sha">{formatSha(commit.sha)}</span>
@@ -148,7 +151,7 @@
           </div>
           <span class="commit-message">{truncateMessage(commit.message)}</span>
           <span class="commit-author">{commit.author}</span>
-        </button>
+        </div>
       {/each}
     </div>
   {/if}
