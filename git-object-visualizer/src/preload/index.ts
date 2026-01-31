@@ -1,11 +1,31 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
-// Commit type for renderer
+// Commit type for renderer (히스토리용)
 interface Commit {
   sha: string
   message: string
   author: string
   date: string
+}
+
+// CommitObject type for renderer (상세 정보용)
+interface CommitObject {
+  sha: string
+  tree: string
+  parents: string[]
+  author: string
+  authorDate: string
+  committer: string
+  committerDate: string
+  message: string
+}
+
+// TreeEntry type for renderer
+interface TreeEntry {
+  mode: string
+  type: 'blob' | 'tree'
+  sha: string
+  name: string
 }
 
 // Git API to be exposed to renderer
@@ -27,6 +47,36 @@ const gitApi = {
    */
   getCommitHistory: (repoPath: string, limit?: number): Promise<Commit[]> => {
     return ipcRenderer.invoke('git:getCommitHistory', repoPath, limit)
+  },
+
+  /**
+   * 커밋 객체의 상세 정보를 조회합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param sha - 커밋 SHA
+   * @returns Promise<CommitObject> - 커밋 객체 정보
+   */
+  getCommit: (repoPath: string, sha: string): Promise<CommitObject> => {
+    return ipcRenderer.invoke('git:getCommit', repoPath, sha)
+  },
+
+  /**
+   * 트리 객체의 항목 목록을 조회합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param sha - 트리 SHA
+   * @returns Promise<TreeEntry[]> - 트리 항목 목록
+   */
+  getTree: (repoPath: string, sha: string): Promise<TreeEntry[]> => {
+    return ipcRenderer.invoke('git:getTree', repoPath, sha)
+  },
+
+  /**
+   * Blob 객체의 내용을 조회합니다.
+   * @param repoPath - Git 저장소 경로
+   * @param sha - Blob SHA
+   * @returns Promise<string> - Blob 내용
+   */
+  getBlob: (repoPath: string, sha: string): Promise<string> => {
+    return ipcRenderer.invoke('git:getBlob', repoPath, sha)
   }
 }
 
