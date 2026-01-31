@@ -23,6 +23,46 @@
     blob: 'Blob'
   }
 
+  // Git command tooltip descriptions
+  const commandDescriptions: Record<string, string> = {
+    'git cat-file -p': '객체의 pretty-print 된 내용을 출력합니다',
+    'git ls-tree': 'tree 객체의 내용을 목록 형태로 출력합니다',
+    'git show': '커밋의 상세 정보와 변경 내용(diff)을 출력합니다',
+    'git log': '커밋 히스토리를 출력합니다'
+  }
+
+  // Tooltip state
+  let activeTooltip = $state<string | null>(null)
+  let tooltipTimer: ReturnType<typeof setTimeout> | null = null
+
+  function showTooltip(command: string) {
+    // Clear any existing timer
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer)
+    }
+    // Show tooltip after 0.5 seconds
+    tooltipTimer = setTimeout(() => {
+      activeTooltip = command
+    }, 500)
+  }
+
+  function hideTooltip() {
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer)
+      tooltipTimer = null
+    }
+    activeTooltip = null
+  }
+
+  function getCommandBase(command: string): string {
+    // Extract the base command (e.g., "git cat-file -p" from "git cat-file -p <sha>")
+    if (command.startsWith('git cat-file -p')) return 'git cat-file -p'
+    if (command.startsWith('git ls-tree')) return 'git ls-tree'
+    if (command.startsWith('git show')) return 'git show'
+    if (command.startsWith('git log')) return 'git log'
+    return command
+  }
+
   // State
   let isLoading = $state(false)
   let error = $state<string | null>(null)
@@ -234,7 +274,11 @@
         <h4>관련 Git 명령어</h4>
         {#if $selectedObject.type === 'commit'}
           {@const cmd = `git cat-file -p ${$selectedObject.id}`}
-          <div class="command-block">
+          <div
+            class="command-block"
+            onmouseenter={() => showTooltip(cmd)}
+            onmouseleave={hideTooltip}
+          >
             <code>{cmd}</code>
             <button
               class="copy-btn"
@@ -247,10 +291,17 @@
                 <span class="copy-icon">&#128203;</span>
               {/if}
             </button>
+            {#if activeTooltip === cmd}
+              <div class="tooltip">{commandDescriptions[getCommandBase(cmd)]}</div>
+            {/if}
           </div>
         {:else if $selectedObject.type === 'tree'}
           {@const cmd = `git ls-tree ${$selectedObject.id}`}
-          <div class="command-block">
+          <div
+            class="command-block"
+            onmouseenter={() => showTooltip(cmd)}
+            onmouseleave={hideTooltip}
+          >
             <code>{cmd}</code>
             <button
               class="copy-btn"
@@ -263,11 +314,18 @@
                 <span class="copy-icon">&#128203;</span>
               {/if}
             </button>
+            {#if activeTooltip === cmd}
+              <div class="tooltip">{commandDescriptions[getCommandBase(cmd)]}</div>
+            {/if}
           </div>
         {:else if $selectedObject.type === 'blob'}
           {@const cmd1 = `git cat-file -p ${$selectedObject.id}`}
           {@const cmd2 = `git show ${$selectedObject.id}`}
-          <div class="command-block">
+          <div
+            class="command-block"
+            onmouseenter={() => showTooltip(cmd1)}
+            onmouseleave={hideTooltip}
+          >
             <code>{cmd1}</code>
             <button
               class="copy-btn"
@@ -280,8 +338,15 @@
                 <span class="copy-icon">&#128203;</span>
               {/if}
             </button>
+            {#if activeTooltip === cmd1}
+              <div class="tooltip">{commandDescriptions[getCommandBase(cmd1)]}</div>
+            {/if}
           </div>
-          <div class="command-block">
+          <div
+            class="command-block"
+            onmouseenter={() => showTooltip(cmd2)}
+            onmouseleave={hideTooltip}
+          >
             <code>{cmd2}</code>
             <button
               class="copy-btn"
@@ -294,6 +359,9 @@
                 <span class="copy-icon">&#128203;</span>
               {/if}
             </button>
+            {#if activeTooltip === cmd2}
+              <div class="tooltip">{commandDescriptions[getCommandBase(cmd2)]}</div>
+            {/if}
           </div>
         {/if}
       </div>
@@ -547,6 +615,7 @@
     display: flex;
     align-items: stretch;
     gap: 0;
+    position: relative;
   }
 
   .command-block:last-child {
@@ -591,5 +660,45 @@
 
   .copy-icon.check {
     color: #50c878;
+  }
+
+  /* Tooltip styles */
+  .tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: inherit;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: tooltipFadeIn 0.15s ease-out;
+  }
+
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   }
 </style>

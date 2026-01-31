@@ -1,12 +1,40 @@
 <script lang="ts">
   import { commitStore } from '../stores/commit'
   import { repository } from '../stores/repository'
-  import { onMount } from 'svelte'
+  import { onMount, onDestroy } from 'svelte'
 
   let unsubscribeRepo: (() => void) | null = null
 
   // Copy to clipboard state - track which commit SHA was just copied
   let copiedSha = $state<string | null>(null)
+
+  // Git command tooltip descriptions
+  const commandDescriptions: Record<string, string> = {
+    'git show': '커밋의 상세 정보와 변경 내용(diff)을 출력합니다'
+  }
+
+  // Tooltip state
+  let activeTooltipSha = $state<string | null>(null)
+  let tooltipTimer: ReturnType<typeof setTimeout> | null = null
+
+  function showTooltip(sha: string) {
+    // Clear any existing timer
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer)
+    }
+    // Show tooltip after 0.5 seconds
+    tooltipTimer = setTimeout(() => {
+      activeTooltipSha = sha
+    }, 500)
+  }
+
+  function hideTooltip() {
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer)
+      tooltipTimer = null
+    }
+    activeTooltipSha = null
+  }
 
   async function copyGitShow(sha: string, event: MouseEvent) {
     // Prevent commit selection when clicking copy button
@@ -69,6 +97,13 @@
       }
     }
   })
+
+  onDestroy(() => {
+    // Clean up tooltip timer
+    if (tooltipTimer) {
+      clearTimeout(tooltipTimer)
+    }
+  })
 </script>
 
 <div class="commit-timeline">
@@ -90,17 +125,26 @@
         >
           <div class="commit-header">
             <span class="commit-sha">{formatSha(commit.sha)}</span>
-            <button
-              class="copy-btn"
-              onclick={(e) => copyGitShow(commit.sha, e)}
-              title="git show {commit.sha} 복사"
+            <div
+              class="copy-btn-wrapper"
+              onmouseenter={() => showTooltip(commit.sha)}
+              onmouseleave={hideTooltip}
             >
-              {#if copiedSha === commit.sha}
-                <span class="copy-icon check">&#10003;</span>
-              {:else}
-                <span class="copy-icon">&#128203;</span>
+              <button
+                class="copy-btn"
+                onclick={(e) => copyGitShow(commit.sha, e)}
+                title="git show {commit.sha} 복사"
+              >
+                {#if copiedSha === commit.sha}
+                  <span class="copy-icon check">&#10003;</span>
+                {:else}
+                  <span class="copy-icon">&#128203;</span>
+                {/if}
+              </button>
+              {#if activeTooltipSha === commit.sha}
+                <div class="tooltip">{commandDescriptions['git show']}</div>
               {/if}
-            </button>
+            </div>
           </div>
           <span class="commit-message">{truncateMessage(commit.message)}</span>
           <span class="commit-author">{commit.author}</span>
@@ -254,5 +298,52 @@
 
   .error {
     color: #ff6b6b;
+  }
+
+  /* Copy button wrapper for tooltip positioning */
+  .copy-btn-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Tooltip styles */
+  .tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: inherit;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: tooltipFadeIn 0.15s ease-out;
+  }
+
+  .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+
+  @keyframes tooltipFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   }
 </style>
