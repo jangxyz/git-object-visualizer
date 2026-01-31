@@ -3,6 +3,7 @@
   import * as d3 from 'd3'
   import { repository } from '../stores/repository'
   import { commitStore } from '../stores/commit'
+  import { selectedObjectStore } from '../stores/selectedObject'
   import { isIpcError } from '../utils/ipcError'
 
   interface GraphNode extends d3.SimulationNodeDatum {
@@ -273,6 +274,20 @@
       event.subject.fx = null
       event.subject.fy = null
     }
+
+    // Node click handler
+    function handleNodeClick(event: MouseEvent, d: GraphNode) {
+      event.stopPropagation()
+      selectedObjectStore.select({
+        id: d.id,
+        type: d.type,
+        label: d.label,
+        name: d.name
+      })
+    }
+
+    // Add click handlers to nodes
+    node.on('click', handleNodeClick)
   }
 
   onMount(() => {

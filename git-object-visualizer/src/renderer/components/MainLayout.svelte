@@ -3,6 +3,7 @@
   import FileExplorer from './FileExplorer.svelte'
   import ObjectGraph from './ObjectGraph.svelte'
   import CommitTimeline from './CommitTimeline.svelte'
+  import ObjectDetailPanel from './ObjectDetailPanel.svelte'
 
   interface Props {
     repositoryName: string
@@ -28,6 +29,8 @@
       <CommitTimeline />
     </div>
   </div>
+
+  <ObjectDetailPanel />
 </div>
 
 <style>
