@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { isValidRepository } from './gitService'
@@ -36,6 +36,18 @@ function createWindow(): void {
 // IPC handlers for git service
 ipcMain.handle('git:isValidRepository', (_event, path: string) => {
   return isValidRepository(path)
+})
+
+// Dialog handler for opening folder
+ipcMain.handle('dialog:openFolder', async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ['openDirectory'],
+    title: '저장소 폴더 선택'
+  })
+  if (result.canceled || result.filePaths.length === 0) {
+    return null
+  }
+  return result.filePaths[0]
 })
 
 app.whenReady().then(() => {

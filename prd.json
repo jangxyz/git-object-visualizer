@@ -31,7 +31,7 @@
         "Typecheck 통과"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -47,7 +47,7 @@
         "Typecheck 통과"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "✅ 확인 가능: 저장소 선택하면 이름 표시됨"
     },
     {

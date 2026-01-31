@@ -4,6 +4,10 @@
 - Main process code in src/main/, preload in src/preload/, renderer in src/renderer/
 - Run `npm run typecheck` to verify all TypeScript code
 - Svelte 5 uses `mount()` instead of `new App()` pattern
+- IPC pattern: Use `ipcMain.handle('channel', handler)` in main, `ipcRenderer.invoke('channel', args)` in preload
+- Expose APIs via contextBridge.exposeInMainWorld('api', { ... }) in preload
+- TypeScript types for window.api go in src/renderer/types/api.d.ts
+- Svelte stores go in src/renderer/stores/
 
 ---
 
@@ -37,5 +41,30 @@
   - Svelte 5 uses `import { mount } from 'svelte'` and `mount(App, { target })` pattern
   - electron-vite automatically sets up ELECTRON_RENDERER_URL for dev mode
   - Security settings: contextIsolation: true, nodeIntegration: false already set in main process
+
+---
+
+## 2026-01-31 - US-003
+- What was implemented:
+  - Dialog IPC handler for folder selection (dialog:openFolder)
+  - Dialog API exposed via preload (window.api.dialog.openFolder)
+  - Svelte store for repository state (path, name, error)
+  - Open Repository button UI in center of screen
+  - Repository name display after successful selection
+  - Error message display for invalid Git repositories
+  - Loading state while opening repository
+
+- Files changed:
+  - git-object-visualizer/src/main/index.ts (modified - added dialog handler)
+  - git-object-visualizer/src/preload/index.ts (modified - added dialog API)
+  - git-object-visualizer/src/renderer/App.svelte (modified - added UI)
+  - git-object-visualizer/src/renderer/types/api.d.ts (modified - added DialogApi type)
+  - git-object-visualizer/src/renderer/stores/repository.ts (new - repository store)
+
+- **Learnings for future iterations:**
+  - Use dialog.showOpenDialog with properties: ['openDirectory'] for folder selection
+  - Extract repo name from path using path.split(/[/\\]/).pop()
+  - Svelte 5 uses onclick={handler} instead of on:click={handler}
+  - Use writable/derived from svelte/store for state management
 
 ---

@@ -12,7 +12,19 @@ const gitApi = {
   }
 }
 
+// Dialog API to be exposed to renderer
+const dialogApi = {
+  /**
+   * 폴더 선택 다이얼로그를 엽니다.
+   * @returns Promise<string | null> - 선택된 폴더 경로 또는 취소 시 null
+   */
+  openFolder: (): Promise<string | null> => {
+    return ipcRenderer.invoke('dialog:openFolder')
+  }
+}
+
 // Expose API to renderer process
 contextBridge.exposeInMainWorld('api', {
-  git: gitApi
+  git: gitApi,
+  dialog: dialogApi
 })

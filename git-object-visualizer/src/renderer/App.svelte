@@ -1,9 +1,62 @@
 <script lang="ts">
+  import { repository, isRepositoryOpen } from './stores/repository'
+
+  let isLoading = false
+
+  async function handleOpenRepository() {
+    isLoading = true
+    repository.clearError()
+
+    try {
+      const selectedPath = await window.api.dialog.openFolder()
+
+      if (!selectedPath) {
+        // User cancelled the dialog
+        isLoading = false
+        return
+      }
+
+      const isValid = await window.api.git.isValidRepository(selectedPath)
+
+      if (isValid) {
+        // Extract repository name from path
+        const repoName = selectedPath.split(/[/\\]/).pop() || selectedPath
+        repository.setRepository(selectedPath, repoName)
+      } else {
+        repository.setError('유효한 Git 저장소가 아닙니다')
+      }
+    } catch (error) {
+      repository.setError('저장소를 여는 중 오류가 발생했습니다')
+    } finally {
+      isLoading = false
+    }
+  }
 </script>
 
 <main>
-  <h1>Git Object Visualizer</h1>
-  <p>Git 내부 객체 구조를 시각적으로 탐색하세요</p>
+  {#if $isRepositoryOpen}
+    <div class="repository-info">
+      <h1>{$repository.name}</h1>
+      <p class="path">{$repository.path}</p>
+    </div>
+  {:else}
+    <div class="welcome">
+      <h1>Git Object Visualizer</h1>
+      <p>Git 내부 객체 구조를 시각적으로 탐색하세요</p>
+
+      <button class="open-repo-btn" onclick={handleOpenRepository} disabled={isLoading}>
+        {#if isLoading}
+          열는 중...
+        {:else}
+          저장소 열기
+        {/if}
+      </button>
+
+      {#if $repository.error}
+        <p class="error">{$repository.error}</p>
+      {/if}
+    </div>
+  {/if}
 </main>
 
 <style>
@@ -29,12 +82,55 @@
     text-align: center;
   }
 
-  h1 {
+  .welcome h1 {
     font-size: 2rem;
     margin-bottom: 1rem;
   }
 
-  p {
+  .welcome p {
     color: #888;
+  }
+
+  .open-repo-btn {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    background-color: #4a9eff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .open-repo-btn:hover:not(:disabled) {
+    background-color: #3a8eef;
+  }
+
+  .open-repo-btn:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+  }
+
+  .error {
+    margin-top: 1rem;
+    color: #ff6b6b;
+    font-size: 0.9rem;
+  }
+
+  .repository-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .repository-info h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .repository-info .path {
+    color: #888;
+    font-size: 0.9rem;
   }
 </style>
